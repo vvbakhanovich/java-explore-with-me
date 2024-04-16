@@ -23,7 +23,7 @@ class EndpointHitDtoTest {
 
         EndpointHitDto endpointHitDto = EndpointHitDto.of(null,"ewm-main-ru.practicum.yandex.service", "/events/1", "192.163.0.1",
                 LocalDateTime.of(2022, 9,
-                6, 11, 00, 23));
+                6, 11, 0, 23));
 
         String json = "{\n" +
                 "  \"app\": \"ewm-main-ru.practicum.yandex.service\",\n" +
