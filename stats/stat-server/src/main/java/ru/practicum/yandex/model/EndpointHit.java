@@ -1,8 +1,10 @@
 package ru.practicum.yandex.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,14 +23,14 @@ public class EndpointHit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
-    String app;
+    private String app;
 
-    String uri;
+    private String uri;
 
-    String ip;
+    private String ip;
 
     @Column(name = "created")
-    LocalDateTime timestamp;
+    private LocalDateTime timestamp;
 }
