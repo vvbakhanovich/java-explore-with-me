@@ -16,7 +16,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "endpointhits")
-@Data
+@Getter
+@Setter
+@ToString
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 public class EndpointHit {
