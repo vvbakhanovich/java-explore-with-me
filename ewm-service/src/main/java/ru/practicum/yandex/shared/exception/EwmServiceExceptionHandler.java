@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
 public class EwmServiceExceptionHandler {
@@ -27,12 +30,25 @@ public class EwmServiceExceptionHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        return ErrorResponse.builder()
+                .errors(getStackTraceAsString(e))
+                .message(e.getLocalizedMessage())
+                .reason("The required object was not found.")
+                .status(NOT_FOUND)
+                .build();
+    }
+
+    @ExceptionHandler
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
-                .message(e.getLocalizedMessage())
-                .reason("Integrity constraint has been violated")
+                .message("Field: " + Objects.requireNonNull(e.getFieldError()).getField() +
+                        ". Error = " + Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage() +
+                        " Value: " + e.getFieldError().getRejectedValue())
+                .reason("Incorrectly made request.")
                 .status(BAD_REQUEST)
                 .build();
     }

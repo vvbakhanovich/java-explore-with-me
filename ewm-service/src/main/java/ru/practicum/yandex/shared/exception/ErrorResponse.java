@@ -22,5 +22,5 @@ public class ErrorResponse {
     private String message;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime timestamp;
+    private final LocalDateTime timestamp = LocalDateTime.now();
 }
