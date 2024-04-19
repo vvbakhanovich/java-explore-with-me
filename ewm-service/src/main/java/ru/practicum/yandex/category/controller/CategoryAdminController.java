@@ -51,6 +51,6 @@ public class CategoryAdminController {
     @ResponseStatus(NO_CONTENT)
     public void removeCategory(@PathVariable Long catId) {
         log.info("CategoryAdminController deleting category with id '{}'.", catId);
-        categoryService.removeCategory(catId);
+        categoryService.removeCategoryById(catId);
     }
 }

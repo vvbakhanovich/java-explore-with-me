@@ -297,12 +297,12 @@ class CategoryAdminControllerTest {
     @SneakyThrows
     @DisplayName("Delete category")
     void removeCategory_whenCategoryFound_shouldReturn204Status() {
-        doNothing().when(categoryService).removeCategory(catId);
+        doNothing().when(categoryService).removeCategoryById(catId);
 
         mvc.perform(delete("/admin/categories/{catId}", catId))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService, times(1)).removeCategory(catId);
+        verify(categoryService, times(1)).removeCategoryById(catId);
     }
 
     @Test
@@ -312,6 +312,6 @@ class CategoryAdminControllerTest {
         mvc.perform(delete("/admin/categories/{catId}", catId))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService, times(1)).removeCategory(catId);
+        verify(categoryService, times(1)).removeCategoryById(catId);
     }
 }
