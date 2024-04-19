@@ -1,4 +1,4 @@
-package ru.practicum.yandex.category;
+package ru.practicum.yandex.category.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,15 +34,16 @@ public class CategoryAdminController {
     @ResponseStatus(CREATED)
     public CategoryDto addCategory(@RequestBody @Valid CategoryDto categoryDto) {
         log.info("CategoryAdminController adding category '{}'.", categoryDto);
-        Category category = categoryMapper.toModel(categoryDto);
-        Category addedCategory = categoryService.addCategory(category);
+        final Category category = categoryMapper.toModel(categoryDto);
+        final Category addedCategory = categoryService.addCategory(category);
         return categoryMapper.toDto(addedCategory);
     }
 
     @PatchMapping("/{catId}")
-    public CategoryDto updateCategory(@PathVariable Long catId) {
-        log.info("CategoryAdminController updating category with id '{}'.", catId);
-        Category updatedCategory = categoryService.updateCategory(catId);
+    public CategoryDto updateCategory(@PathVariable Long catId, @RequestBody CategoryDto updateCategoryDto) {
+        log.info("CategoryAdminController updating category with id '{}', new name: '{}'.", catId, updateCategoryDto.getName());
+        final Category updateCategory = categoryMapper.toModel(updateCategoryDto);
+        final Category updatedCategory = categoryService.updateCategory(catId, updateCategory);
         return categoryMapper.toDto(updatedCategory);
     }
 

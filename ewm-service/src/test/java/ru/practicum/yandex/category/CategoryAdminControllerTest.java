@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import ru.practicum.yandex.category.controller.CategoryAdminController;
 import ru.practicum.yandex.category.dto.CategoryDto;
 import ru.practicum.yandex.category.mapper.CategoryMapper;
 import ru.practicum.yandex.category.model.Category;
@@ -251,17 +252,22 @@ class CategoryAdminControllerTest {
     @SneakyThrows
     @DisplayName("Update category")
     void updateCategory_whenNameIsValid_shouldReturn200Status() {
-        when(categoryService.updateCategory(catId))
+        when(categoryMapper.toModel(categoryDto))
+                .thenReturn(category);
+        when(categoryService.updateCategory(catId, category))
                 .thenReturn(category);
         when(categoryMapper.toDto(category))
                 .thenReturn(categoryDto);
 
-        mvc.perform(patch("/admin/categories/{catId}", catId))
+        mvc.perform(patch("/admin/categories/{catId}", catId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(categoryDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(categoryDto.getId())))
                 .andExpect(jsonPath("$.name", is(categoryDto.getName())));
 
-        verify(categoryService, times(1)).updateCategory(catId);
+        verify(categoryMapper, times(1)).toModel(categoryDto);
+        verify(categoryService, times(1)).updateCategory(catId, category);
         verify(categoryMapper, times(1)).toDto(category);
     }
 
@@ -269,15 +275,21 @@ class CategoryAdminControllerTest {
     @SneakyThrows
     @DisplayName("Update not found category")
     void updateCategory_whenCategoryNotFound_shouldReturn200Status() {
-        when(categoryService.updateCategory(catId))
+        when(categoryMapper.toModel(categoryDto))
+                .thenReturn(category);
+        when(categoryService.updateCategory(catId, category))
                 .thenThrow(new NotFoundException("Category with id '" + catId + "' not found."));
 
-        mvc.perform(patch("/admin/categories/{catId}", catId))
+        mvc.perform(patch("/admin/categories/{catId}", catId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(categoryDto)))
                 .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof NotFoundException))
                 .andExpect(jsonPath("$.message", is("Category with id '" + catId + "' not found.")))
                 .andExpect(jsonPath("$.status", is("NOT_FOUND")));
 
-        verify(categoryService, times(1)).updateCategory(catId);
+        verify(categoryMapper, times(1)).toModel(categoryDto);
+        verify(categoryService, times(1)).updateCategory(catId, category);
         verify(categoryMapper, never()).toDto(any());
     }
 
