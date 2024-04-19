@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -24,7 +23,7 @@ public class EwmServiceExceptionHandler {
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
                 .message(e.getLocalizedMessage())
-                .reason("Integrity constraint has been violated")
+                .reason("Integrity constraint has been violated.")
                 .status(CONFLICT)
                 .build();
     }
