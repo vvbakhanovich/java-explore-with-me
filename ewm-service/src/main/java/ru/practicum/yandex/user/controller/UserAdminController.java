@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.user.dto.UserDto;
-import ru.practicum.yandex.user.dto.UserShortDto;
+import ru.practicum.yandex.user.dto.NewUserRequest;
 import ru.practicum.yandex.user.mapper.UserMapper;
 import ru.practicum.yandex.user.model.User;
 import ru.practicum.yandex.user.service.UserService;
@@ -27,7 +27,7 @@ import java.util.List;
 @RequestMapping("/admin/users")
 @Validated
 @Slf4j
-public class UserController {
+public class UserAdminController {
 
     private final UserService userService;
 
@@ -35,7 +35,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody @Valid UserShortDto userShortDto) {
+    public UserDto createUser(@RequestBody @Valid NewUserRequest userShortDto) {
         log.info("UserController create request for user '{}'.", userShortDto);
         User userToAdd = userMapper.toModel(userShortDto);
         User savedUser = userService.createUser(userToAdd);

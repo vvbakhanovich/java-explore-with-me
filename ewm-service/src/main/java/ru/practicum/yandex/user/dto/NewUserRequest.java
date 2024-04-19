@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserShortDto {
+public class NewUserRequest {
 
     @NotBlank(message = "Name length must be between 2 and 250 characters.")
     @Size(min = 2, max = 250, message = "Name length must be between 2 and 250 characters.")

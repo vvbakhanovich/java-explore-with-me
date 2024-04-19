@@ -5,17 +5,15 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
+import ru.practicum.yandex.user.dto.NewUserRequest;
 import ru.practicum.yandex.user.dto.UserDto;
-import ru.practicum.yandex.user.dto.UserShortDto;
 import ru.practicum.yandex.user.mapper.UserMapper;
 import ru.practicum.yandex.user.model.User;
 import ru.practicum.yandex.user.service.UserService;
@@ -35,8 +33,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
-class UserControllerTest {
+@WebMvcTest(controllers = UserAdminController.class)
+class UserAdminControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -54,7 +52,7 @@ class UserControllerTest {
 
     private UserDto userDto;
 
-    private UserShortDto userShortDto;
+    private NewUserRequest userShortDto;
 
     @BeforeEach
     void init() {
@@ -66,7 +64,7 @@ class UserControllerTest {
                 .email("test@email.com")
                 .name("name")
                 .build();
-        userShortDto = UserShortDto.builder()
+        userShortDto = NewUserRequest.builder()
                 .email("testShort@email.com")
                 .name("nameShort")
                 .build();
@@ -118,7 +116,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -145,7 +143,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -173,7 +171,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -200,7 +198,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -226,7 +224,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -252,7 +250,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -279,7 +277,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -307,7 +305,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -361,7 +359,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -414,7 +412,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
@@ -467,7 +465,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
 
-        verify(userMapper, never()).toModel(any(UserShortDto.class));
+        verify(userMapper, never()).toModel(any(NewUserRequest.class));
         verify(userService, never()).createUser(any());
         verify(userMapper, never()).toDto(any());
     }
