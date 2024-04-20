@@ -40,6 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
         categoryRepository.deleteById(catId);
+        //TODO check that category does not have any events
         log.info("CategoryController, deleted category with id '" + catId + "'.");
     }
 

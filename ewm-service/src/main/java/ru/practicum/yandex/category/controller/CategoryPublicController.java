@@ -2,6 +2,7 @@ package ru.practicum.yandex.category.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,11 +13,14 @@ import ru.practicum.yandex.category.mapper.CategoryMapper;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.service.CategoryService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
+@Validated
 @Slf4j
 public class CategoryPublicController {
 
@@ -25,8 +29,8 @@ public class CategoryPublicController {
     private final CategoryMapper categoryMapper;
 
     @GetMapping
-    public List<CategoryDto> findCategories(@RequestParam(defaultValue = "0") Long from,
-                                            @RequestParam(defaultValue = "10") Integer size) {
+    public List<CategoryDto> findCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Long from,
+                                            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("CategoryPublicController find categories from = '{}', size = '{}'.", from, size);
         List<Category> categories = categoryService.findCategories(from, size);
         return categoryMapper.toDtoList(categories);
