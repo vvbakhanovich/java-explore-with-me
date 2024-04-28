@@ -19,8 +19,8 @@ public class NewUserRequest {
     @Size(min = 2, max = 250, message = "Name length must be between 2 and 250 characters.")
     private String name;
 
-    @Email(message = "Wrong email format.", regexp = "^(?=(.{1,64}@.{1,255}))([-+%_a-zA-Z0-9]{1,64}(\\.[-+%_a-zA-Z0-9]" +
-            "[^.]{0,}){0,})@([a-zA-Z0-9_]{0,63}(\\.[a-zA-Z0-9-]{0,}){0,}[^.](\\.[a-zA-Z]{2,60}){1,4})$")
+    @Email(message = "Wrong email format.")
+    @Size(min = 6, max = 254, message = "Wrong email format.")
     @NotBlank(message = "Wrong email format.")
     private String email;
 }

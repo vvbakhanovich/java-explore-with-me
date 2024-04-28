@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.yandex.user.validation.ValidEventStart;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -31,15 +32,19 @@ public class NewEventDto {
     private String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @ValidEventStart
     private LocalDateTime eventDate;
 
     @NotBlank(message = "Title must not be blank or empty and contain between 20 and 7000 characters.")
     @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 20 and 7000 characters.")
     private String title;
 
+    @NotNull(message = "Location must be specified.")
+    private LocationDto location;
+
     private boolean paid;
 
     private int participantLimit;
 
-    private boolean requestModeration = true;
+    private boolean requestModeration;
 }

@@ -23,6 +23,8 @@ public class NewEvent {
 
     private String title;
 
+    private Location location;
+
     private boolean paid;
 
     private int participantLimit;

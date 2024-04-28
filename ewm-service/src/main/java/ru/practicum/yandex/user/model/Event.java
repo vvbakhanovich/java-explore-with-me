@@ -69,4 +69,8 @@ public class Event {
 
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
 }
