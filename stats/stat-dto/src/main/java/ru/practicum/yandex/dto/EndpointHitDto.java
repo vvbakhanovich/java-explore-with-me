@@ -22,5 +22,6 @@ public class EndpointHitDto {
     @ValidIPv4
     private String ip;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 }
