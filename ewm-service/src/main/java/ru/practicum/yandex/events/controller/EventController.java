@@ -13,7 +13,6 @@ import ru.practicum.yandex.user.dto.EventFullDto;
 import ru.practicum.yandex.user.dto.EventShortDto;
 import ru.practicum.yandex.user.mapper.EventMapper;
 import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventShort;
 
 import java.util.List;
 
