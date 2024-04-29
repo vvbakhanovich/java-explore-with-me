@@ -9,12 +9,9 @@ import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
-import ru.practicum.yandex.user.mapper.EventMapper;
 import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventShort;
 import ru.practicum.yandex.user.model.EventState;
 import ru.practicum.yandex.user.repository.EventRepository;
-import ru.practicum.yandex.user.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,10 +26,6 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
 
-    private final ParticipationRequestRepository participationRequestRepository;
-
-    private final EventMapper eventMapper;
-
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
         Sort sort = getSort(searchFilter);
@@ -41,7 +34,16 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
         log.info("Requesting events with filter '{}'.", searchFilter);
+        if (searchFilter.isOnlyAvailable()) {
+            return returnOnlyAvailableIfNeeded(events);
+        }
         return events;
+    }
+
+    private static List<Event> returnOnlyAvailableIfNeeded(List<Event> events) {
+        return events.stream()
+                .filter(event -> event.getParticipants() < event.getParticipantLimit())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -57,17 +59,6 @@ public class EventServiceImpl implements EventService {
     private Event getEvent(Long id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
-    }
-
-    private void addOnlyAvailableIfNeeded(EventSearchFilter searchFilter, Event event, long confirmedRequests,
-                                          List<EventShort> shortEvents, EventShort shortEvent) {
-        if (searchFilter.isOnlyAvailable()) {
-            if (confirmedRequests < event.getParticipantLimit()) {
-                shortEvents.add(shortEvent);
-            }
-        } else {
-            shortEvents.add(shortEvent);
-        }
     }
 
     private Sort getSort(EventSearchFilter searchFilter) {
@@ -97,34 +88,30 @@ public class EventServiceImpl implements EventService {
     }
 
     private Specification<Event> textInAnnotationOrDescription(String text) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.or(
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
                 criteriaBuilder.like(root.get("annotation"),
                         "%" + text.toLowerCase() + "%"),
                 criteriaBuilder.like(root.get("description"),
-                        "%" + text.toLowerCase() + "%")));
+                        "%" + text.toLowerCase() + "%"));
     }
 
     private Specification<Event> inCategories(List<Long> categoryIds) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("category").get("id")).value(categoryIds));
+        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("category").get("id")).value(categoryIds);
     }
 
     private Specification<Event> isPaid(boolean isPaid) {
         return ((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("paid"), isPaid));
     }
 
-    private Specification<Event> inIds(List<Long> ids) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("id")).value(ids);
-    }
-
     private Specification<Event> inDateRange(LocalDateTime startRange, LocalDateTime endRange) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.between(root.get("eventDate"), startRange, endRange));
+        return (root, query, criteriaBuilder) -> criteriaBuilder.between(root.get("eventDate"), startRange, endRange);
     }
 
     private Specification<Event> afterDate(LocalDateTime dateTime) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("eventDate"), LocalDateTime.now()));
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("eventDate"), dateTime);
     }
 
     private Specification<Event> statusIs(EventState eventState) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("state"), eventState));
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("state"), eventState);
     }
 }
