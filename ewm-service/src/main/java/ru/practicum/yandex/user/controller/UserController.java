@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.user.dto.EventFullDto;
+import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
 import ru.practicum.yandex.user.dto.EventShortDto;
 import ru.practicum.yandex.user.dto.NewEventDto;
 import ru.practicum.yandex.user.dto.ParticipationRequestDto;
@@ -21,6 +23,7 @@ import ru.practicum.yandex.user.dto.UpdateEventUserRequest;
 import ru.practicum.yandex.user.mapper.EventMapper;
 import ru.practicum.yandex.user.mapper.ParticipationMapper;
 import ru.practicum.yandex.user.model.Event;
+import ru.practicum.yandex.user.model.EventShort;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.service.UserService;
@@ -58,7 +61,7 @@ public class UserController {
                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("UserController, finding events from user with id '{}'.", userId);
         final List<Event> events = userService.findEventsFromUser(userId, from, size);
-        return eventMapper.toShortDtoList(events);
+        return eventMapper.toShortDtos(events);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
@@ -79,9 +82,44 @@ public class UserController {
 
     @PostMapping("/{userId}/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto addParticipationRequestToEvent(@PathVariable Long userId, @RequestParam Long eventId) {
-        log.info("UserController, user with id '{}' requesting participation in event with id'{}'.", userId, eventId);
+    public ParticipationRequestDto addParticipationRequestToEvent(@PathVariable Long userId,
+                                                                  @RequestParam Long eventId) {
+        log.info("UserController, user with id '{}' requesting participation in event with id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = userService.addParticipationRequestToEvent(userId, eventId);
         return participationMapper.toDto(participationRequest);
+    }
+
+    @GetMapping("/{userId}/requests")
+    public List<ParticipationRequestDto> findParticipationRequestsByUser(@PathVariable Long userId) {
+        log.info("UserController, user with id '{}' requesting participation request list.", userId);
+        final List<ParticipationRequest> participationRequests = userService.findParticipationRequestsByUser(userId);
+        return participationMapper.toDtoList(participationRequests);
+    }
+
+    @PatchMapping("/{userId}/requests/{requestId}/cancel")
+    public ParticipationRequestDto cancelOwnParticipationRequest(@PathVariable Long userId,
+                                                                 @PathVariable Long requestId) {
+        log.info("UserController, user with id '{}' canceling request with id '{}'.", userId, requestId);
+        final ParticipationRequest canceledRequest = userService.cancelOwnParticipationRequest(userId, requestId);
+        return participationMapper.toDto(canceledRequest);
+    }
+
+    @GetMapping("/{userId}/events/{eventId}/requests")
+    public List<ParticipationRequestDto> findParticipationRequestsForUsersEvent(@PathVariable Long userId,
+                                                                                @PathVariable Long eventId) {
+        log.info("UserController, getting participation requests in event with id '{}' initiated by user with id '{}'.",
+                eventId, userId);
+        final List<ParticipationRequest> participationRequests = userService
+                .findParticipationRequestsForUsersEvent(userId, eventId);
+        return participationMapper.toDtoList(participationRequests);
+    }
+
+    @PatchMapping("/{userId}/events/{eventId}/requests")
+    public EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(
+            @PathVariable Long userId,
+            @PathVariable Long eventId,
+            @RequestBody EventRequestStatusUpdateRequest statusUpdate) {
+        log.info("Changing participation requests status for event with id '{}' by user with id '{}'.", eventId, userId);
+        return userService.changeParticipationRequestStatusForUsersEvent(userId, eventId, statusUpdate);
     }
 }

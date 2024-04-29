@@ -2,14 +2,16 @@ package ru.practicum.yandex.user.mapper;
 
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import ru.practicum.yandex.category.mapper.CategoryMapper;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.user.dto.EventFullDto;
 import ru.practicum.yandex.user.dto.EventShortDto;
 import ru.practicum.yandex.user.dto.NewEventDto;
 import ru.practicum.yandex.user.dto.UpdateEventUserRequest;
 import ru.practicum.yandex.user.model.Event;
+import ru.practicum.yandex.user.model.EventShort;
 import ru.practicum.yandex.user.model.EventState;
 import ru.practicum.yandex.user.model.Location;
 import ru.practicum.yandex.user.model.NewEvent;
@@ -19,7 +21,7 @@ import java.util.List;
 
 import static org.mapstruct.NullValuePropertyMappingStrategy.*;
 
-@Mapper(componentModel = "spring", uses = {LocationMapper.class})
+@Mapper(componentModel = "spring", uses = {LocationMapper.class, UserMapper.class, CategoryMapper.class})
 public interface EventMapper {
 
     NewEvent toModel(NewEventDto newEventDto);
@@ -28,7 +30,12 @@ public interface EventMapper {
 
     EventShortDto toShortDto(Event event);
 
-    List<EventShortDto> toShortDtoList(List<Event> events);
+    @Mapping(source = "confirmedRequests", target = "confirmedRequests")
+    EventShort toShortEvent(Event event, long confirmedRequests);
+
+    List<EventShortDto> toShortDtos(List<Event> events);
+
+    List<EventShortDto> toShortDtoList(List<EventShort> events);
 
     @BeanMapping(nullValuePropertyMappingStrategy = IGNORE)
     void updateEvent(UpdateEventUserRequest updateEvent, @MappingTarget Event event);

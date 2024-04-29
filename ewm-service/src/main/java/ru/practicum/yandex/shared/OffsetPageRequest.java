@@ -16,8 +16,19 @@ public class OffsetPageRequest implements Pageable {
         sort = Sort.unsorted();
     }
 
+    private OffsetPageRequest(Long offset, Integer size, Sort sort) {
+        validateOffsetAndSize(offset, size);
+        this.offset = offset;
+        this.size = size;
+        this.sort = sort;
+    }
+
     public static OffsetPageRequest of(Long offset, Integer size) {
         return new OffsetPageRequest(offset, size);
+    }
+
+    public static OffsetPageRequest of(Long offset, Integer size, Sort sort) {
+        return new OffsetPageRequest(offset, size, sort);
     }
 
     @Override

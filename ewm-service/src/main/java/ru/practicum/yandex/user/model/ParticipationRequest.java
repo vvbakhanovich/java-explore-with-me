@@ -10,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -37,6 +39,7 @@ public class ParticipationRequest {
     @Column(name = "created_on")
     private LocalDateTime created;
 
+    @Enumerated(EnumType.STRING)
     private ParticipationStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)

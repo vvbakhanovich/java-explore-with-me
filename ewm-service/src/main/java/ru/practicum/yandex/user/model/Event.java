@@ -73,4 +73,11 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
+
+    @Column(name = "confirmed_requests")
+    private int participants;
+
+    public int addParticipant() {
+        return participants++;
+    }
 }

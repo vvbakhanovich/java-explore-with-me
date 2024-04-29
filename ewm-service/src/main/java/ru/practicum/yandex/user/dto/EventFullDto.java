@@ -33,7 +33,7 @@ public class EventFullDto {
 
     private String title;
 
-    private long confirmedRequests;
+    private int confirmedRequests;
 
     private long views;
 
