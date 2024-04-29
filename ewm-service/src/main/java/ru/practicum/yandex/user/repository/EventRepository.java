@@ -11,4 +11,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT e FROM Event e JOIN FETCH e.category c JOIN FETCH e.initiator i WHERE i.id = ?1")
     List<Event> findEventsByUserId(Long userId, Pageable pageable);
+
+    long countEventsByCategoryId(Long categoryId);
 }

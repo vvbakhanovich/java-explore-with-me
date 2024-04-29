@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
 import ru.practicum.yandex.shared.OffsetPageRequest;
+import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
+import ru.practicum.yandex.user.repository.EventRepository;
 
 import java.util.List;
 
@@ -18,6 +20,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    private final EventRepository eventRepository;
+
     @Override
     public Category addCategory(Category category) {
         final Category savedCategory = categoryRepository.save(category);
@@ -27,8 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category updateCategory(Long catId, Category updateCategory) {
-        final Category foundCategory = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+        final Category foundCategory = getCategory(catId);
         foundCategory.setName(updateCategory.getName());
         final Category updatedCategory = categoryRepository.save(foundCategory);
         log.info("CategoryController, update category with id '{}', new name: '{}'.", catId, updatedCategory.getName());
@@ -37,11 +40,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void removeCategoryById(Long catId) {
-        categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+        getCategory(catId);
+        checkIfCategoryHaveAnyEvents(catId);
         categoryRepository.deleteById(catId);
-        //TODO check that category does not have any events
         log.info("CategoryController, deleted category with id '" + catId + "'.");
+    }
+
+    private void checkIfCategoryHaveAnyEvents(Long catId) {
+        long eventWithSameCategory = eventRepository.countEventsByCategoryId(catId);
+        if (eventWithSameCategory > 0) {
+            throw new NotAuthorizedException("Category with id '" + catId + "' still have other event attached to it.");
+        }
     }
 
     @Override
@@ -55,9 +64,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category findCategoryById(Long catId) {
-        Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+        Category category = getCategory(catId);
         log.info("CategoryService category found: " + category);
         return category;
+    }
+
+    private Category getCategory(Long catId) {
+        return categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
     }
 }
