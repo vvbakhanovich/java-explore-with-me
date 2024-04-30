@@ -40,7 +40,7 @@ public class CategoryAdminController {
     }
 
     @PatchMapping("/{catId}")
-    public CategoryDto updateCategory(@PathVariable Long catId, @RequestBody CategoryDto updateCategoryDto) {
+    public CategoryDto updateCategory(@PathVariable Long catId, @RequestBody @Valid CategoryDto updateCategoryDto) {
         log.info("CategoryAdminController updating category with id '{}', new name: '{}'.", catId, updateCategoryDto.getName());
         final Category updateCategory = categoryMapper.toModel(updateCategoryDto);
         final Category updatedCategory = categoryService.updateCategory(catId, updateCategory);
