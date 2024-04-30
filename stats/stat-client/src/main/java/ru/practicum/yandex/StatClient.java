@@ -20,7 +20,7 @@ public class StatClient {
     private final WebClient webClient;
 
     public EndpointHitDto methodHit(EndpointHitDto endpointHitDto) {
-        String uri = "/hits";
+        String uri = "/hit";
         log.info("StatClient request on uri '{}'. Body '{}'.", uri, endpointHitDto);
         return webClient
                 .post()
