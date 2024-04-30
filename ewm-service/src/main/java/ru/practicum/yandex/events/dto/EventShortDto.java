@@ -1,10 +1,11 @@
-package ru.practicum.yandex.user.dto;
+package ru.practicum.yandex.events.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.yandex.category.dto.CategoryDto;
+import ru.practicum.yandex.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 

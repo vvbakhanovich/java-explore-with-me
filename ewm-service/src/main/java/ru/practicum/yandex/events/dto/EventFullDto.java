@@ -1,4 +1,4 @@
-package ru.practicum.yandex.user.dto;
+package ru.practicum.yandex.events.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.yandex.category.dto.CategoryDto;
-import ru.practicum.yandex.user.model.EventState;
+import ru.practicum.yandex.user.dto.UserShortDto;
+import ru.practicum.yandex.events.model.EventState;
 
 import java.time.LocalDateTime;
 

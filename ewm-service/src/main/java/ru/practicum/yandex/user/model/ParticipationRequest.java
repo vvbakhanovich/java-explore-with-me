@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import ru.practicum.yandex.events.model.Event;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

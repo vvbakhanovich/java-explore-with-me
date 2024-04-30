@@ -13,17 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.yandex.user.dto.EventFullDto;
+import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
-import ru.practicum.yandex.user.dto.EventShortDto;
+import ru.practicum.yandex.events.dto.EventShortDto;
+import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.user.dto.NewEventDto;
 import ru.practicum.yandex.user.dto.ParticipationRequestDto;
-import ru.practicum.yandex.user.dto.UpdateEventUserRequest;
-import ru.practicum.yandex.user.mapper.EventMapper;
+import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.user.mapper.ParticipationMapper;
-import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventShort;
+import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.service.UserService;
@@ -61,7 +60,7 @@ public class UserController {
                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("UserController, finding events from user with id '{}'.", userId);
         final List<Event> events = userService.findEventsFromUser(userId, from, size);
-        return eventMapper.toShortDtos(events);
+        return eventMapper.toShortDtoList(events);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
@@ -74,7 +73,7 @@ public class UserController {
     @PatchMapping("/{userId}/events/{eventId}")
     public EventFullDto updateEvent(@PathVariable Long userId,
                                     @PathVariable Long eventId,
-                                    @RequestBody @Valid UpdateEventUserRequest updateEvent) {
+                                    @RequestBody @Valid EventUpdateRequest updateEvent) {
         log.info("UserController, update event with id '{}', by user with id '{}'.", eventId, userId);
         final Event updatedEvent = userService.updateEvent(userId, eventId, updateEvent);
         return eventMapper.toDto(updatedEvent);

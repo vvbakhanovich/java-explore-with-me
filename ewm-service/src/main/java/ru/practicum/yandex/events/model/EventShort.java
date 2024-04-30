@@ -1,4 +1,4 @@
-package ru.practicum.yandex.user.model;
+package ru.practicum.yandex.events.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

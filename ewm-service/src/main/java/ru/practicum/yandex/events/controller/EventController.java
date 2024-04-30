@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.service.EventService;
-import ru.practicum.yandex.user.dto.EventFullDto;
-import ru.practicum.yandex.user.dto.EventShortDto;
-import ru.practicum.yandex.user.mapper.EventMapper;
-import ru.practicum.yandex.user.model.Event;
+import ru.practicum.yandex.events.dto.EventFullDto;
+import ru.practicum.yandex.events.dto.EventShortDto;
+import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Event;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class EventController {
                                           @RequestParam(defaultValue = "10") Integer size) {
         log.info("Requesting events, search filter: '{}'.", searchFilter);
         List<Event> events = eventService.findEvents(searchFilter, from, size);
-        return eventMapper.toShortDtos(events);
+        return eventMapper.toShortDtoList(events);
     }
 
     @GetMapping("/{id}")

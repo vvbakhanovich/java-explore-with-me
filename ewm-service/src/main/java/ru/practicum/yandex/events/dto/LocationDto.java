@@ -1,4 +1,4 @@
-package ru.practicum.yandex.user.dto;
+package ru.practicum.yandex.events.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

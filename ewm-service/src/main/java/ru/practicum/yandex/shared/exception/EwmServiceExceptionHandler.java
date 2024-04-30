@@ -1,6 +1,9 @@
 package ru.practicum.yandex.shared.exception;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,16 +19,19 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
+@Slf4j
 public class EwmServiceExceptionHandler {
 
     @ExceptionHandler({
             ConstraintViolationException.class,
             EventNotModifiableException.class,
             RequestAlreadyExistsException.class,
-            NotAuthorizedException.class
+            NotAuthorizedException.class,
+            DataIntegrityViolationException.class
     })
     @ResponseStatus(CONFLICT)
     public ErrorResponse handleConstraintViolationException(Exception e) {
+        log.error(e.getLocalizedMessage());
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
                 .message(e.getLocalizedMessage())
@@ -37,6 +43,7 @@ public class EwmServiceExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(NOT_FOUND)
     public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.error(e.getLocalizedMessage());
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
                 .message(e.getLocalizedMessage())
@@ -48,6 +55,7 @@ public class EwmServiceExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.error(e.getLocalizedMessage());
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
                 .message("Field: " + Objects.requireNonNull(e.getFieldError()).getField() +
@@ -59,12 +67,25 @@ public class EwmServiceExceptionHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        log.error(e.getLocalizedMessage());
+        return ErrorResponse.builder()
+                .errors(getStackTraceAsString(e))
+                .message(e.getParameterName() + " is missing.")
+                .reason("Missing request parameter " + e.getParameterName())
+                .status(BAD_REQUEST)
+                .build();
+    }
+
+    @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ErrorResponse handleAllException(Exception e) {
+        log.error(e.getLocalizedMessage());
         return ErrorResponse.builder()
                 .errors(getStackTraceAsString(e))
                 .message(e.getLocalizedMessage())
-                .reason("Unexpected error occured.")
+                .reason("Unexpected error occurred.")
                 .status(INTERNAL_SERVER_ERROR)
                 .build();
     }

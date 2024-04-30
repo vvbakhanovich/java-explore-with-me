@@ -6,6 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
+import ru.practicum.yandex.events.dto.EventUpdateRequest;
+import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.model.EventState;
+import ru.practicum.yandex.events.model.Location;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.EventNotModifiableException;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
@@ -13,12 +18,7 @@ import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.shared.exception.RequestAlreadyExistsException;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.yandex.user.dto.UpdateEventUserRequest;
-import ru.practicum.yandex.user.mapper.EventMapper;
 import ru.practicum.yandex.user.mapper.ParticipationMapper;
-import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventState;
-import ru.practicum.yandex.user.model.Location;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.model.User;
@@ -27,7 +27,6 @@ import ru.practicum.yandex.user.repository.LocationRepository;
 import ru.practicum.yandex.user.repository.ParticipationRequestRepository;
 import ru.practicum.yandex.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,7 +86,7 @@ public class UserServiceImpl implements UserService {
         final Category category = getCategory(newEvent);
         final Location eventLocation = saveLocation(newEvent);
         Event fullEvent;
-        fullEvent = createEvent(newEvent, category, initiator, eventLocation);
+        fullEvent = createNewEvent(newEvent, category, initiator, eventLocation);
         final Event savedEvent = eventRepository.save(fullEvent);
         log.info("UserService, event with id '{}' was saved.", savedEvent.getId());
         return savedEvent;
@@ -114,12 +113,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Event updateEvent(Long userId, Long eventId, UpdateEventUserRequest updateEvent) {
+    public Event updateEvent(Long userId, Long eventId, EventUpdateRequest updateEvent) {
         getUser(userId);
         Event eventToUpdate = getEvent(eventId);
         EventState eventState = eventToUpdate.getState();
-        //TODO delete if not needed
-//        checkEventState(eventState);
+        checkEventIsPublished(eventState);
         changeStateIfNeeded(updateEvent, eventToUpdate);
         eventMapper.updateEvent(updateEvent, eventToUpdate);
         log.info("UserService, event with id '{}' was updated by user with id '{}'.", eventId, userId);
@@ -129,13 +127,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ParticipationRequest addParticipationRequestToEvent(Long userId, Long eventId) {
-        User user = getUser(userId);
+        final User user = getUser(userId);
         final Event event = getEvent(eventId);
         checkIfUserCanMakeRequest(userId, eventId, event);
         checkIfParticipationRequestExists(userId, eventId);
         checkIfEventIsPublished(event);
         log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
-        return createParticipantRequest(eventId, user, event);
+        ParticipationRequest participationRequest = createParticipantRequest(user, event);
+        ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
+        log.info("Participation request with '{}' was saved. Current number of participants on event with id '{}' is '{}'.", participationRequest.getId(),
+                eventId, event.getNumberOfParticipants());
+        return savedRequest;
     }
 
     @Override
@@ -168,7 +170,6 @@ public class UserServiceImpl implements UserService {
         return participationRequests;
     }
 
-    //TODO refactor code if works
     @Override
     @Transactional
     public EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(
@@ -178,9 +179,8 @@ public class UserServiceImpl implements UserService {
         getUser(userId);
         Event event = getEvent(eventId);
         int participantLimit = checkParticipantLimit(event);
-
         List<Long> requestIds = statusUpdate.getRequestIds();
-        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByEventIdIn(requestIds);
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByIdIn(requestIds);
         int lastConfirmedRequest = 0;
         EventRequestStatusUpdateDto eventRequestStatusUpdate = new EventRequestStatusUpdateDto();
         lastConfirmedRequest = populateStatusUpdateDto(statusUpdate, participationRequests, eventRequestStatusUpdate, lastConfirmedRequest, event, participantLimit);
@@ -203,8 +203,6 @@ public class UserServiceImpl implements UserService {
                 if (incrementedParticipants == participantLimit) {
                     break;
                 }
-            } else {
-                eventRequestStatusUpdate.addRejectedRequest(participationMapper.toDto(participationRequest));
             }
         }
         return lastConfirmedRequest;
@@ -227,7 +225,7 @@ public class UserServiceImpl implements UserService {
                     "to confirm requests");
         }
 
-        int currentParticipants = event.getParticipants();
+        int currentParticipants = event.getNumberOfParticipants();
 
         if (currentParticipants == participantLimit) {
             throw new NotAuthorizedException("The participant limit has been reached");
@@ -259,15 +257,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found."));
     }
 
-    private Event createEvent(NewEvent newEvent, Category category, User initiator, Location eventLocation) {
-        Event fullEvent;
-        if (newEvent.isRequestModeration()) {
-            fullEvent = eventMapper.toFullEvent(newEvent, category, initiator, EventState.PENDING, eventLocation);
-        } else {
-            fullEvent = eventMapper.toFullEvent(newEvent, category, initiator, EventState.PUBLISHED, eventLocation);
-            fullEvent.setPublishedOn(LocalDateTime.now());
-        }
-        return fullEvent;
+    private Event createNewEvent(NewEvent newEvent, Category category, User initiator, Location eventLocation) {
+        return eventMapper.toFullEvent(newEvent, category, initiator, EventState.PENDING, eventLocation);
     }
 
     private Location saveLocation(NewEvent newEvent) {
@@ -286,13 +277,16 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("Event with id '" + eventId + "' was not found."));
     }
 
-    private void checkEventState(EventState eventState) {
-        if (!(eventState.equals(EventState.CANCELED) || eventState.equals(EventState.PENDING))) {
+    private void checkEventIsPublished(EventState eventState) {
+        if (eventState.equals(EventState.PUBLISHED)) {
             throw new EventNotModifiableException("Event can not be modified.");
         }
     }
 
-    private void changeStateIfNeeded(UpdateEventUserRequest updateEvent, Event eventToUpdate) {
+    private void changeStateIfNeeded(EventUpdateRequest updateEvent, Event eventToUpdate) {
+        if (updateEvent.getStateAction() == null) {
+            return;
+        }
         switch (updateEvent.getStateAction()) {
             case CANCEL_REVIEW:
                 eventToUpdate.setState(EventState.CANCELED);
@@ -325,18 +319,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private ParticipationRequest createParticipantRequest(Long eventId, User user, Event event) {
+    private ParticipationRequest createParticipantRequest(User user, Event event) {
         ParticipationRequest participationRequest = ParticipationRequest.builder()
                 .requester(user)
                 .event(event)
                 .build();
-        if (!event.isRequestModeration()) {
+        if (event.getNumberOfParticipants() == event.getParticipantLimit() && event.getParticipantLimit() != 0) {
+            throw new NotAuthorizedException("Participant limit is exceeded.");
+        } else if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
             participationRequest.setStatus(CONFIRMED);
-        } else if (event.getParticipantLimit() <= participationRequestRepository.countByEventIdAndStatus(eventId, CONFIRMED)) {
-            participationRequest.setStatus(PENDING);
+            addConfirmedRequestToEvent(event);
         } else {
-            throw new NotFoundException("Participant limit is exceeded.");
+            participationRequest.setStatus(PENDING);
         }
         return participationRequest;
+    }
+
+    private void addConfirmedRequestToEvent(Event event) {
+        event.addParticipant();
+        eventRepository.save(event);
     }
 }

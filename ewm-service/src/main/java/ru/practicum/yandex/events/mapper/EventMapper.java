@@ -1,25 +1,24 @@
-package ru.practicum.yandex.user.mapper;
+package ru.practicum.yandex.events.mapper;
 
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import ru.practicum.yandex.category.mapper.CategoryMapper;
 import ru.practicum.yandex.category.model.Category;
-import ru.practicum.yandex.user.dto.EventFullDto;
-import ru.practicum.yandex.user.dto.EventShortDto;
+import ru.practicum.yandex.events.dto.EventFullDto;
+import ru.practicum.yandex.events.dto.EventShortDto;
+import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.user.dto.NewEventDto;
-import ru.practicum.yandex.user.dto.UpdateEventUserRequest;
-import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventShort;
-import ru.practicum.yandex.user.model.EventState;
-import ru.practicum.yandex.user.model.Location;
+import ru.practicum.yandex.user.mapper.UserMapper;
+import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.model.EventState;
+import ru.practicum.yandex.events.model.Location;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.User;
 
 import java.util.List;
 
-import static org.mapstruct.NullValuePropertyMappingStrategy.*;
+import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
 @Mapper(componentModel = "spring", uses = {LocationMapper.class, UserMapper.class, CategoryMapper.class})
 public interface EventMapper {
@@ -28,17 +27,14 @@ public interface EventMapper {
 
     EventFullDto toDto(Event addedEvent);
 
+    List<EventFullDto> toDtoList(List<Event> events);
+
     EventShortDto toShortDto(Event event);
 
-    @Mapping(source = "confirmedRequests", target = "confirmedRequests")
-    EventShort toShortEvent(Event event, long confirmedRequests);
-
-    List<EventShortDto> toShortDtos(List<Event> events);
-
-    List<EventShortDto> toShortDtoList(List<EventShort> events);
+    List<EventShortDto> toShortDtoList(List<Event> events);
 
     @BeanMapping(nullValuePropertyMappingStrategy = IGNORE)
-    void updateEvent(UpdateEventUserRequest updateEvent, @MappingTarget Event event);
+    void updateEvent(EventUpdateRequest updateEvent, @MappingTarget Event event);
 
     default Event toFullEvent(NewEvent newEventDto, Category category, User initiator, EventState state, Location location) {
         return Event.builder()

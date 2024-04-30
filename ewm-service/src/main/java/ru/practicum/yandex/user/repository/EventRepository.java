@@ -4,7 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import ru.practicum.yandex.user.model.Event;
+import ru.practicum.yandex.events.model.Event;
 
 import java.util.List;
 

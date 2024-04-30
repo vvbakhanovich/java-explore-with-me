@@ -6,10 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.yandex.events.dto.LocationDto;
 import ru.practicum.yandex.user.validation.ValidEventStart;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -44,7 +46,8 @@ public class NewEventDto {
 
     private boolean paid;
 
+    @PositiveOrZero(message = "Number of paricipants must be positive or zero.")
     private int participantLimit;
 
-    private boolean requestModeration;
+    private boolean requestModeration = true;
 }

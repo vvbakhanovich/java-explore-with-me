@@ -1,4 +1,4 @@
-package ru.practicum.yandex.user.model;
+package ru.practicum.yandex.events.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.yandex.category.model.Category;
+import ru.practicum.yandex.user.model.User;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -70,14 +72,14 @@ public class Event {
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "location_id")
     private Location location;
 
     @Column(name = "confirmed_requests")
-    private int participants;
+    private int numberOfParticipants;
 
     public int addParticipant() {
-        return participants++;
+        return numberOfParticipants++;
     }
 }

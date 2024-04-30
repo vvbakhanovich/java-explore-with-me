@@ -1,8 +1,8 @@
-package ru.practicum.yandex.user.mapper;
+package ru.practicum.yandex.events.mapper;
 
 import org.mapstruct.Mapper;
-import ru.practicum.yandex.user.dto.LocationDto;
-import ru.practicum.yandex.user.model.Location;
+import ru.practicum.yandex.events.dto.LocationDto;
+import ru.practicum.yandex.events.model.Location;
 
 @Mapper(componentModel = "spring")
 public interface LocationMapper {

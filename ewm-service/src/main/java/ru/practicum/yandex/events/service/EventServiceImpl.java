@@ -5,12 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.yandex.events.dto.EventAdminSearchFilter;
 import ru.practicum.yandex.events.dto.EventSearchFilter;
+import ru.practicum.yandex.events.dto.EventSort;
+import ru.practicum.yandex.events.dto.EventUpdateRequest;
+import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
-import ru.practicum.yandex.user.model.Event;
-import ru.practicum.yandex.user.model.EventState;
+import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.model.EventState;
+import ru.practicum.yandex.user.dto.StateAction;
 import ru.practicum.yandex.user.repository.EventRepository;
 
 import java.time.LocalDateTime;
@@ -26,23 +32,25 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
 
+    private final EventMapper eventMapper;
+
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
-        Sort sort = getSort(searchFilter);
+        Sort sort = getSort(searchFilter.getSort());
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size, sort);
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
         log.info("Requesting events with filter '{}'.", searchFilter);
         if (searchFilter.isOnlyAvailable()) {
-            return returnOnlyAvailableIfNeeded(events);
+            return getOnlyAvailableRequests(events);
         }
         return events;
     }
 
-    private static List<Event> returnOnlyAvailableIfNeeded(List<Event> events) {
+    private static List<Event> getOnlyAvailableRequests(List<Event> events) {
         return events.stream()
-                .filter(event -> event.getParticipants() < event.getParticipantLimit())
+                .filter(event -> event.getNumberOfParticipants() < event.getParticipantLimit())
                 .collect(Collectors.toList());
     }
 
@@ -50,10 +58,63 @@ public class EventServiceImpl implements EventService {
     public Event getFullEventInfoById(Long id) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotAuthorizedException("Event is not published.");
+            throw new NotFoundException("Event is not published.");
         }
         log.info("Requesting full event info with id '{}'.", id);
         return event;
+    }
+
+    @Override
+    public List<Event> getFullEventsInfo(EventAdminSearchFilter searchFilter, Long from, Integer size) {
+        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
+        List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
+        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
+                pageRequest).getContent();
+        log.info("Requesting full events info by admin  with filter '{}'.", searchFilter);
+        if (searchFilter.isOnlyAvailable()) {
+            return getOnlyAvailableRequests(events);
+        }
+        return events;
+    }
+
+    @Override
+    @Transactional
+    public Event updateEventByAdmin(Long eventId, EventUpdateRequest updateRequest) {
+        Event event = getEvent(eventId);
+        eventMapper.updateEvent(updateRequest, event);
+        updateEventState(updateRequest.getStateAction(), event);
+        Event savedEvent = eventRepository.save(event);
+        log.info("Event with id '{}' was updated by admin.", eventId);
+        return savedEvent;
+    }
+
+    private void updateEventState(StateAction stateAction, Event event) {
+        if (stateAction == null) {
+            return;
+        }
+        switch (stateAction) {
+            case PUBLISH_EVENT:
+                checkIfEventIsCanceled(event);
+                checkIfEventIsAlreadyPublished(event);
+                event.setState(EventState.PUBLISHED);
+                break;
+            case REJECT_EVENT:
+                checkIfEventIsAlreadyPublished(event);
+                event.setState(EventState.CANCELED);
+                break;
+        }
+    }
+
+    private void checkIfEventIsCanceled(Event event) {
+        if (event.getState().equals(EventState.CANCELED)) {
+            throw new NotAuthorizedException("Can not publish canceled event.");
+        }
+    }
+
+    private void checkIfEventIsAlreadyPublished(Event event) {
+        if (event.getState().equals(EventState.PUBLISHED)) {
+            throw new NotAuthorizedException("Event is already published.");
+        }
     }
 
     private Event getEvent(Long id) {
@@ -61,9 +122,13 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
     }
 
-    private Sort getSort(EventSearchFilter searchFilter) {
-        Sort sort;
-        switch (searchFilter.getSort()) {
+    private Sort getSort(EventSort eventSort) {
+        Sort sort = Sort.unsorted();
+        if (eventSort == null) {
+            return sort;
+        }
+
+        switch (eventSort) {
             case VIEWS:
                 sort = Sort.by(Sort.Direction.ASC, "views");
                 break;
@@ -71,7 +136,7 @@ public class EventServiceImpl implements EventService {
                 sort = Sort.by(Sort.Direction.ASC, "eventDate");
                 break;
             default:
-                throw new IllegalArgumentException("Sort '" + searchFilter.getSort() + "is not supported yet.");
+                throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
         }
         return sort;
     }
@@ -86,6 +151,17 @@ public class EventServiceImpl implements EventService {
                 afterDate(LocalDateTime.now()) : inDateRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
+
+    private List<Specification<Event>> eventAdminSearchFilterToSpecifications(EventAdminSearchFilter searchFilter) {
+        List<Specification<Event>> resultSpecification = new ArrayList<>();
+        resultSpecification.add(searchFilter.getStates() == null ? null : statusIn(searchFilter.getStates()));
+        resultSpecification.add(searchFilter.getIds() == null ? null : userIdIn(searchFilter.getIds()));
+        resultSpecification.add(searchFilter.getCategories() == null ? null : inCategories(searchFilter.getCategories()));
+        resultSpecification.add(searchFilter.getRangeEnd() == null && searchFilter.getRangeStart() == null ?
+                afterDate(LocalDateTime.now()) : inDateRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
 
     private Specification<Event> textInAnnotationOrDescription(String text) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.or(
@@ -113,5 +189,13 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> statusIs(EventState eventState) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("state"), eventState);
+    }
+
+    private Specification<Event> statusIn(List<EventState> states) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("state")).value(states);
+    }
+
+    private Specification<Event> userIdIn(List<Long> userIds) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("initiator").get("id")).value(userIds);
     }
 }
