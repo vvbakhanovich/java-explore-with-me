@@ -21,9 +21,14 @@ class EndpointHitDtoTest {
     void whenDateTimeWithoutFormat_ShouldReturnFormattedJson() {
         objectMapper.registerModule(new JavaTimeModule());
 
-        EndpointHitDto endpointHitDto = EndpointHitDto.of(null,"ewm-main-ru.practicum.yandex.service", "/events/1", "192.163.0.1",
-                LocalDateTime.of(2022, 9,
-                6, 11, 0, 23));
+        EndpointHitDto endpointHitDto = EndpointHitDto.builder()
+                .id(null)
+                .uri( "/events/1")
+                .ip("192.163.0.1")
+                .app("ewm-main-ru.practicum.yandex.service")
+                .timestamp(LocalDateTime.of(2022, 9,
+                        6, 11, 0, 23))
+                .build();
 
         String json = "{\n" +
                 "  \"app\": \"ewm-main-ru.practicum.yandex.service\",\n" +

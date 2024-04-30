@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS events (
     published_on TIMESTAMP,
     location_id BIGINT NOT NULL,
     confirmed_requests INTEGER NOT NULL,
+    views BIGINT NOT NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (location_id) REFERENCES locations(id)

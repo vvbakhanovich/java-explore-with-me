@@ -12,7 +12,7 @@ public interface EventService {
 
     Event getFullEventInfoById(Long id);
 
-    List<Event> getFullEventsInfo(EventAdminSearchFilter searchFilter, Long from, Integer size);
+    List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size);
 
     Event updateEventByAdmin(Long eventId, EventUpdateRequest updateRequest);
 }

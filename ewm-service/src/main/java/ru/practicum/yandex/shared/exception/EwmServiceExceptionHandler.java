@@ -79,6 +79,18 @@ public class EwmServiceExceptionHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleIncorrectDateRangeException(IncorrectDateRangeException e) {
+        log.error(e.getLocalizedMessage());
+        return ErrorResponse.builder()
+                .errors(getStackTraceAsString(e))
+                .message(e.getLocalizedMessage())
+                .reason("Incorrect date range.")
+                .status(BAD_REQUEST)
+                .build();
+    }
+
+    @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ErrorResponse handleAllException(Exception e) {
         log.error(e.getLocalizedMessage());

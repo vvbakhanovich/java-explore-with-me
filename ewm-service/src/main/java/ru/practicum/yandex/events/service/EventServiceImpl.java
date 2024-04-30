@@ -11,11 +11,11 @@ import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventSort;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
-import ru.practicum.yandex.events.model.Event;
-import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.user.dto.StateAction;
 import ru.practicum.yandex.user.repository.EventRepository;
 
@@ -48,12 +48,6 @@ public class EventServiceImpl implements EventService {
         return events;
     }
 
-    private static List<Event> getOnlyAvailableRequests(List<Event> events) {
-        return events.stream()
-                .filter(event -> event.getNumberOfParticipants() < event.getParticipantLimit())
-                .collect(Collectors.toList());
-    }
-
     @Override
     public Event getFullEventInfoById(Long id) {
         Event event = getEvent(id);
@@ -65,7 +59,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> getFullEventsInfo(EventAdminSearchFilter searchFilter, Long from, Integer size) {
+    public List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
@@ -97,12 +91,19 @@ public class EventServiceImpl implements EventService {
                 checkIfEventIsCanceled(event);
                 checkIfEventIsAlreadyPublished(event);
                 event.setState(EventState.PUBLISHED);
+                event.setPublishedOn(LocalDateTime.now());
                 break;
             case REJECT_EVENT:
                 checkIfEventIsAlreadyPublished(event);
                 event.setState(EventState.CANCELED);
                 break;
         }
+    }
+
+    private static List<Event> getOnlyAvailableRequests(List<Event> events) {
+        return events.stream()
+                .filter(event -> event.getNumberOfParticipants() < event.getParticipantLimit())
+                .collect(Collectors.toList());
     }
 
     private void checkIfEventIsCanceled(Event event) {
@@ -144,7 +145,7 @@ public class EventServiceImpl implements EventService {
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
         List<Specification<Event>> resultSpecification = new ArrayList<>();
         resultSpecification.add(statusIs(EventState.PUBLISHED));
-        resultSpecification.add(searchFilter.getText() == null ? null : textInAnnotationOrDescription(searchFilter.getText()));
+        resultSpecification.add(searchFilter.getText() == null ? null : textInAnnotationOrDescriptionIgnoreCase(searchFilter.getText()));
         resultSpecification.add(searchFilter.getCategories() == null ? null : inCategories(searchFilter.getCategories()));
         resultSpecification.add(searchFilter.getPaid() == null ? null : isPaid(searchFilter.getPaid()));
         resultSpecification.add(searchFilter.getRangeEnd() == null && searchFilter.getRangeStart() == null ?
@@ -155,20 +156,21 @@ public class EventServiceImpl implements EventService {
     private List<Specification<Event>> eventAdminSearchFilterToSpecifications(EventAdminSearchFilter searchFilter) {
         List<Specification<Event>> resultSpecification = new ArrayList<>();
         resultSpecification.add(searchFilter.getStates() == null ? null : statusIn(searchFilter.getStates()));
-        resultSpecification.add(searchFilter.getIds() == null ? null : userIdIn(searchFilter.getIds()));
+        resultSpecification.add(searchFilter.getUsers() == null ? null : userIdIn(searchFilter.getUsers()));
         resultSpecification.add(searchFilter.getCategories() == null ? null : inCategories(searchFilter.getCategories()));
         resultSpecification.add(searchFilter.getRangeEnd() == null && searchFilter.getRangeStart() == null ?
                 afterDate(LocalDateTime.now()) : inDateRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-
-    private Specification<Event> textInAnnotationOrDescription(String text) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
-                criteriaBuilder.like(root.get("annotation"),
-                        "%" + text.toLowerCase() + "%"),
-                criteriaBuilder.like(root.get("description"),
-                        "%" + text.toLowerCase() + "%"));
+    private Specification<Event> textInAnnotationOrDescriptionIgnoreCase(String text) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("annotation")),
+                                "%" + text.toLowerCase() + "%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")),
+                                "%" + text.toLowerCase() + "%")
+                );
     }
 
     private Specification<Event> inCategories(List<Long> categoryIds) {

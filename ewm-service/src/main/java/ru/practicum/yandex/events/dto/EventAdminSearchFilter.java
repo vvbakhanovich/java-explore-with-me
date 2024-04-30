@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 public class EventAdminSearchFilter {
 
-    private List<Long> ids;
+    private List<Long> users;
 
     private List<EventState> states;
 

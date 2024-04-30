@@ -79,7 +79,13 @@ public class Event {
     @Column(name = "confirmed_requests")
     private int numberOfParticipants;
 
+    private long views;
+
     public int addParticipant() {
-        return numberOfParticipants++;
+        return ++numberOfParticipants;
+    }
+
+    public long addView() {
+        return views++;
     }
 }

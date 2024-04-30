@@ -34,7 +34,7 @@ public class EventAdminController {
                                                        @RequestParam(defaultValue = "0") Long from,
                                                        @RequestParam(defaultValue = "10") Integer size) {
         log.info("Admin requesting full events info, search filter: '{}'.", searchFilter);
-        List<Event> events = eventService.getFullEventsInfo(searchFilter, from, size);
+        List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, from, size);
         return eventMapper.toDtoList(events);
     }
 
