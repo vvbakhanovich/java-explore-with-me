@@ -42,7 +42,7 @@ public class EventAdminController {
     public EventFullDto updateEventByAdmin(@PathVariable Long eventId,
                                            @RequestBody @Valid EventUpdateRequest updateRequest) {
         log.info("Admin updating event with id '{}'.", eventId);
-        Event event= eventService.updateEventByAdmin(eventId, updateRequest);
+        Event event = eventService.updateEventByAdmin(eventId, updateRequest);
         return eventMapper.toDto(event);
     }
 }

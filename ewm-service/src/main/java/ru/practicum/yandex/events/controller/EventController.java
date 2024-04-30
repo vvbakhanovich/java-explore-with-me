@@ -2,7 +2,6 @@ package ru.practicum.yandex.events.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,16 +9,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.StatClient;
 import ru.practicum.yandex.dto.EndpointHitDto;
-import ru.practicum.yandex.events.dto.EventSearchFilter;
-import ru.practicum.yandex.events.service.EventService;
 import ru.practicum.yandex.events.dto.EventFullDto;
+import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventShortDto;
 import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.service.EventService;
 import ru.practicum.yandex.shared.exception.IncorrectDateRangeException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 

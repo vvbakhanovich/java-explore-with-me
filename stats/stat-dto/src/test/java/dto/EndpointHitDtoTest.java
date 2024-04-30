@@ -17,13 +17,12 @@ class EndpointHitDtoTest {
 
     @Test
     @SneakyThrows
-
     void whenDateTimeWithoutFormat_ShouldReturnFormattedJson() {
         objectMapper.registerModule(new JavaTimeModule());
 
         EndpointHitDto endpointHitDto = EndpointHitDto.builder()
                 .id(null)
-                .uri( "/events/1")
+                .uri("/events/1")
                 .ip("192.163.0.1")
                 .app("ewm-main-ru.practicum.yandex.service")
                 .timestamp(LocalDateTime.of(2022, 9,
