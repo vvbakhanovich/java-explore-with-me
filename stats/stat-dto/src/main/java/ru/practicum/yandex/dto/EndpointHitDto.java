@@ -20,7 +20,6 @@ public class EndpointHitDto {
 
     private String uri;
 
-//    @ValidIPv4
     private String ip;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
