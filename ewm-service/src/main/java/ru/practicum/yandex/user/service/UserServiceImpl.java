@@ -22,8 +22,8 @@ import ru.practicum.yandex.user.mapper.ParticipationMapper;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.model.User;
-import ru.practicum.yandex.user.repository.EventRepository;
-import ru.practicum.yandex.user.repository.LocationRepository;
+import ru.practicum.yandex.events.repository.EventRepository;
+import ru.practicum.yandex.events.repository.LocationRepository;
 import ru.practicum.yandex.user.repository.ParticipationRequestRepository;
 import ru.practicum.yandex.user.repository.UserRepository;
 

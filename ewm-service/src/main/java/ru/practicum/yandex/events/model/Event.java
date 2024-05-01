@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.yandex.category.model.Category;
+import ru.practicum.yandex.compilation.model.Compilation;
 import ru.practicum.yandex.user.model.User;
 
 import javax.persistence.CascadeType;
@@ -20,9 +21,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "events")
@@ -42,12 +46,14 @@ public class Event {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @ToString.Exclude
     private Category category;
 
     private LocalDateTime eventDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User initiator;
 
     private Boolean paid;
@@ -74,12 +80,22 @@ public class Event {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "location_id")
+    @ToString.Exclude
     private Location location;
 
     @Column(name = "confirmed_requests")
     private int numberOfParticipants;
 
     private long views;
+
+    @ManyToMany
+    @JoinTable(
+            name = "event_compilation",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "compilation_id")
+    )
+    @ToString.Exclude
+    private Set<Compilation> compilations;
 
     public int addParticipant() {
         return ++numberOfParticipants;

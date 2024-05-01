@@ -17,7 +17,7 @@ import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
-import ru.practicum.yandex.user.repository.EventRepository;
+import ru.practicum.yandex.events.repository.EventRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
