@@ -47,6 +47,7 @@ public class CompilationAdminController {
     }
 
     @DeleteMapping("/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCompilation(@PathVariable Long compId) {
         log.info("Deleting compilation with id '{}'.", compId);
         compilationService.deleteCompilation(compId);
