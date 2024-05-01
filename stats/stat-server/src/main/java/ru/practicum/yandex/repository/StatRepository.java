@@ -27,4 +27,8 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
     @Query("SELECT new ru.practicum.yandex.model.ViewStats(eh.app, eh.uri, COUNT(DISTINCT(eh.ip))) FROM EndpointHit eh " +
             "WHERE eh.timestamp > ?1 AND eh.timestamp < ?2 GROUP BY eh.app, eh.uri ORDER BY COUNT(eh.ip) DESC")
     List<ViewStats> findStatsWithUniqueIps(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT new ru.practicum.yandex.model.ViewStats(eh.app, eh.uri, COUNT(DISTINCT(eh.ip))) FROM EndpointHit eh WHERE eh.uri = ?1 " +
+            "GROUP BY eh.app, eh.uri")
+    ViewStats findUniqueIpStatsForUri(String uri);
 }

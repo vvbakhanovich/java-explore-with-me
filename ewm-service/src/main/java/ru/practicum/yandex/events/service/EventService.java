@@ -10,7 +10,7 @@ import java.util.List;
 public interface EventService {
     List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size);
 
-    Event getFullEventInfoById(Long id);
+    Event getFullEventInfoById(Long id, Long views);
 
     List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size);
 

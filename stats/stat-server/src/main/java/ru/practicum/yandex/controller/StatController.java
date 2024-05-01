@@ -57,6 +57,12 @@ public class StatController {
         return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
     }
 
+    @GetMapping("/statistic")
+    public ViewStatsDto viewUniqueStatsForUri(@RequestParam String uri) {
+        log.info("Requesting stats for unique ips for uri '{}'.", uri);
+        return viewStatsMapper.toDto(statService.viewUniqueIpStatsForUri(uri));
+    }
+
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
             throw new IncorrectDateIntervalException("Wrong date interval. End date should be after start date.");
@@ -66,7 +72,7 @@ public class StatController {
     private LocalDateTime decodeLocalDateTime(String encodedDateTime) {
         String decodedDateTime = URLDecoder.decode(encodedDateTime, StandardCharsets.UTF_8);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return LocalDateTime.parse(decodedDateTime, dateTimeFormatter);
+        return LocalDateTime.parse(decodedDateTime);
     }
 
 }

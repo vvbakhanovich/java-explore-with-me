@@ -49,11 +49,13 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event getFullEventInfoById(Long id) {
+    public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Event is not published.");
         }
+        event.setViews(views);
+        eventRepository.save(event);
         log.info("Requesting full event info with id '{}'.", id);
         return event;
     }

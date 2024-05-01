@@ -46,4 +46,16 @@ public class StatClient {
                 .collectList()
                 .block();
     }
+
+    public ViewStatsDto getUniqueIpStatsForUri(String uri) {
+        log.info("StatClient request unique stats on uri '{}'.", uri);
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/statistic")
+                        .queryParam("uri", uri)
+                        .build())
+                .retrieve()
+                .bodyToMono(ViewStatsDto.class)
+                .block();
+    }
 }

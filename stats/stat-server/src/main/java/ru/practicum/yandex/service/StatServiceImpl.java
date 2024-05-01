@@ -33,6 +33,11 @@ public class StatServiceImpl implements StatService {
         }
     }
 
+    @Override
+    public ViewStats viewUniqueIpStatsForUri(String uri) {
+        return statRepository.findUniqueIpStatsForUri(uri);
+    }
+
     private List<ViewStats> getAllStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
         if (uris == null) {
             log.info("Requesting stats from unique ips between '{}' and '{}' from all uris.", start, end);

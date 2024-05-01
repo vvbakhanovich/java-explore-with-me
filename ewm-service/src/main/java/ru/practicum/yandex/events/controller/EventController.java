@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.yandex.StatClient;
 import ru.practicum.yandex.dto.EndpointHitDto;
+import ru.practicum.yandex.dto.ViewStatsDto;
 import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventShortDto;
@@ -43,7 +44,7 @@ public class EventController {
         log.info("Requesting events, search filter: '{}'.", searchFilter);
         validateDateRange(searchFilter);
         List<Event> events = eventService.findEvents(searchFilter, from, size);
-//        sendStatistics(request);
+        sendStatistics(request);
         return eventMapper.toShortDtoList(events);
     }
 
@@ -51,8 +52,10 @@ public class EventController {
     public EventFullDto getFullEventInfoById(@PathVariable Long id,
                                              HttpServletRequest request) {
         log.info("Requesting full event info with id '{}'.", id);
-        Event event = eventService.getFullEventInfoById(id);
-//        sendStatistics(request);
+        sendStatistics(request);
+        ViewStatsDto statistic = getStatisticsWithUniqueIp(request);
+        Long hits = statistic.getHits();
+        Event event = eventService.getFullEventInfoById(id, hits);
         return eventMapper.toDto(event);
     }
 
@@ -64,6 +67,10 @@ public class EventController {
                 .timestamp(LocalDateTime.now())
                 .build();
         statClient.methodHit(endpointHitDto);
+    }
+
+    private ViewStatsDto getStatisticsWithUniqueIp(HttpServletRequest request) {
+        return statClient.getUniqueIpStatsForUri(request.getRequestURI());
     }
 
     private void validateDateRange(EventSearchFilter searchFilter) {
