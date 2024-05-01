@@ -101,7 +101,7 @@ public class Event {
         return ++numberOfParticipants;
     }
 
-    public long addView() {
-        return views++;
+    public void addToCompilation(Compilation compilation) {
+        compilations.add(compilation);
     }
 }

@@ -91,6 +91,7 @@ public class CompilationServiceImpl implements CompilationService {
     private void updateCompilationIfNeeded(UpdateCompilationRequest updateRequest, Compilation compilation) {
         if (updateRequest.getEvents() != null) {
             List<Event> events = eventRepository.findAllById(updateRequest.getEvents());
+            bindEventsToCompilation(compilation, events);
             compilation.setEvents(new LinkedHashSet<>(events));
         }
         if (updateRequest.getTitle() != null) {
@@ -99,6 +100,11 @@ public class CompilationServiceImpl implements CompilationService {
         if (updateRequest.getPinned() != null) {
             compilation.setPinned(updateRequest.getPinned());
         }
+    }
+
+    private void bindEventsToCompilation(Compilation compilation, List<Event> events) {
+        events.forEach(event -> event.addToCompilation(compilation));
+        eventRepository.saveAll(events);
     }
 
     private Compilation getCompilation(Long compId) {
