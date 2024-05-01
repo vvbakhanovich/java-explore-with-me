@@ -20,7 +20,6 @@ import javax.validation.Valid;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -71,7 +70,6 @@ public class StatController {
 
     private LocalDateTime decodeLocalDateTime(String encodedDateTime) {
         String decodedDateTime = URLDecoder.decode(encodedDateTime, StandardCharsets.UTF_8);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return LocalDateTime.parse(decodedDateTime);
     }
 

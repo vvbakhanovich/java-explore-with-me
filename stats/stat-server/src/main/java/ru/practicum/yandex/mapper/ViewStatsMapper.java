@@ -11,7 +11,5 @@ public interface ViewStatsMapper {
 
     ViewStatsDto toDto(ViewStats viewStats);
 
-    ViewStats toModel(ViewStatsDto viewStatsDto);
-
     List<ViewStatsDto> toDtoList(List<ViewStats> viewStatsList);
 }
