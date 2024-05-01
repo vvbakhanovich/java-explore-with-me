@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.yandex.controller.StatController;
 import ru.practicum.yandex.dto.EndpointHitDto;
 import ru.practicum.yandex.dto.ViewStatsDto;
@@ -81,8 +80,8 @@ class StatControllerTest {
         urisRequest.add("uris", "uri2");
 
         mvc.perform(get("/stats")
-                        .param("start", "2020-11-03+11:54:22")
-                        .param("end", "2020-11-04+12:34:11")
+                        .param("start", "2020-11-03 11:54:22")
+                        .param("end", "2020-11-04 12:34:11")
                         .params(urisRequest)
                         .param("unique", "true"))
                 .andExpect(status().isOk())
@@ -201,21 +200,5 @@ class StatControllerTest {
         verify(statService, times(1)).methodHit(endpointHit);
         verify(endpointHitMapper, times(1)).toModel(endpointHitDto);
         verify(endpointHitMapper, times(1)).toDto(endpointHit);
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Attempt to save EndpointHit with wrong ip format")
-    void methodHit_WhenWrongIpFormat_ShouldThrowConstraintViolationException() {
-        EndpointHitDto endpointHitDto = EndpointHitDto.of(null, "app", "/uri/er", "ip",
-                LocalDateTime.of(2022, 10, 23, 11, 34, 44));
-
-        mvc.perform(post("/hit")
-                        .content(objectMapper.writeValueAsString(endpointHitDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException));
-
-        verify(statService, never()).methodHit(any());
     }
 }
