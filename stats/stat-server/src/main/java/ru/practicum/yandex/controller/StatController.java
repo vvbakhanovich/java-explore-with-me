@@ -14,6 +14,7 @@ import ru.practicum.yandex.exception.IncorrectDateIntervalException;
 import ru.practicum.yandex.mapper.EndpointHitMapper;
 import ru.practicum.yandex.mapper.ViewStatsMapper;
 import ru.practicum.yandex.model.EndpointHit;
+import ru.practicum.yandex.model.ViewStats;
 import ru.practicum.yandex.service.StatService;
 
 import javax.validation.Valid;
@@ -41,7 +42,8 @@ public class StatController {
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
         EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
         log.info("StatController uri '{}', request body '{}'.", "/hit", endpointHitDto);
-        return endpointHitMapper.toDto(statService.methodHit(endpointHit));
+        EndpointHit savedHit = statService.methodHit(endpointHit);
+        return endpointHitMapper.toDto(savedHit);
     }
 
     @GetMapping("/stats")
@@ -54,13 +56,15 @@ public class StatController {
         validateDates(decodedStart, decodedEnd);
         log.info("StatController uri '{}', start = '{}', end = '{}', uris = '{}', unique = '{}'.", "/stats", start,
                 end, uris, unique);
-        return viewStatsMapper.toDtoList(statService.viewStats(decodedStart, decodedEnd, uris, unique));
+        List<ViewStats> statsList = statService.viewStats(decodedStart, decodedEnd, uris, unique);
+        return viewStatsMapper.toDtoList(statsList);
     }
 
     @GetMapping("/statistic")
     public ViewStatsDto viewUniqueStatsForUri(@RequestParam String uri) {
         log.info("Requesting stats for unique ips for uri '{}'.", uri);
-        return viewStatsMapper.toDto(statService.viewUniqueIpStatsForUri(uri));
+        ViewStats stats = statService.viewUniqueIpStatsForUri(uri);
+        return viewStatsMapper.toDto(stats);
     }
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {
