@@ -13,17 +13,25 @@ import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
+import ru.practicum.yandex.events.repository.EventRepository;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
-import ru.practicum.yandex.events.repository.EventRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static ru.practicum.yandex.events.repository.EventSpecification.categoriesIdIn;
+import static ru.practicum.yandex.events.repository.EventSpecification.eventDateInRange;
+import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusEquals;
+import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusIn;
+import static ru.practicum.yandex.events.repository.EventSpecification.initiatorIdIn;
+import static ru.practicum.yandex.events.repository.EventSpecification.isPaid;
+import static ru.practicum.yandex.events.repository.EventSpecification.textInAnnotationOrDescriptionIgnoreCase;
 
 @Service
 @RequiredArgsConstructor
@@ -146,60 +154,20 @@ public class EventServiceImpl implements EventService {
 
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
         List<Specification<Event>> resultSpecification = new ArrayList<>();
-        resultSpecification.add(statusIs(EventState.PUBLISHED));
-        resultSpecification.add(searchFilter.getText() == null ? null : textInAnnotationOrDescriptionIgnoreCase(searchFilter.getText()));
-        resultSpecification.add(searchFilter.getCategories() == null ? null : inCategories(searchFilter.getCategories()));
-        resultSpecification.add(searchFilter.getPaid() == null ? null : isPaid(searchFilter.getPaid()));
-        resultSpecification.add(searchFilter.getRangeEnd() == null && searchFilter.getRangeStart() == null ?
-                afterDate(LocalDateTime.now()) : inDateRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        resultSpecification.add(eventStatusEquals(EventState.PUBLISHED));
+        resultSpecification.add(textInAnnotationOrDescriptionIgnoreCase(searchFilter.getText()));
+        resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
+        resultSpecification.add(isPaid(searchFilter.getPaid()));
+        resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private List<Specification<Event>> eventAdminSearchFilterToSpecifications(EventAdminSearchFilter searchFilter) {
         List<Specification<Event>> resultSpecification = new ArrayList<>();
-        resultSpecification.add(searchFilter.getStates() == null ? null : statusIn(searchFilter.getStates()));
-        resultSpecification.add(searchFilter.getUsers() == null ? null : userIdIn(searchFilter.getUsers()));
-        resultSpecification.add(searchFilter.getCategories() == null ? null : inCategories(searchFilter.getCategories()));
-        resultSpecification.add(searchFilter.getRangeEnd() == null && searchFilter.getRangeStart() == null ?
-                afterDate(LocalDateTime.now()) : inDateRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        resultSpecification.add(eventStatusIn(searchFilter.getStates()));
+        resultSpecification.add(initiatorIdIn(searchFilter.getUsers()));
+        resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
+        resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    private Specification<Event> textInAnnotationOrDescriptionIgnoreCase(String text) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("annotation")),
-                                "%" + text.toLowerCase() + "%"),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")),
-                                "%" + text.toLowerCase() + "%")
-                );
-    }
-
-    private Specification<Event> inCategories(List<Long> categoryIds) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("category").get("id")).value(categoryIds);
-    }
-
-    private Specification<Event> isPaid(boolean isPaid) {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("paid"), isPaid));
-    }
-
-    private Specification<Event> inDateRange(LocalDateTime startRange, LocalDateTime endRange) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.between(root.get("eventDate"), startRange, endRange);
-    }
-
-    private Specification<Event> afterDate(LocalDateTime dateTime) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("eventDate"), dateTime);
-    }
-
-    private Specification<Event> statusIs(EventState eventState) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("state"), eventState);
-    }
-
-    private Specification<Event> statusIn(List<EventState> states) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("state")).value(states);
-    }
-
-    private Specification<Event> userIdIn(List<Long> userIds) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("initiator").get("id")).value(userIds);
     }
 }
