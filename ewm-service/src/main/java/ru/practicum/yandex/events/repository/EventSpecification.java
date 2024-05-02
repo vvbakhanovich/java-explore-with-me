@@ -40,12 +40,12 @@ public class EventSpecification {
 
     public static Specification<Event> eventDateInRange(LocalDateTime startRange, LocalDateTime endRange) {
         if (startRange == null || endRange == null) {
-            return null;
+            return eventDateAfter(LocalDateTime.now());
         }
         return (root, query, criteriaBuilder) -> criteriaBuilder.between(root.get("eventDate"), startRange, endRange);
     }
 
-    public static Specification<Event> eventDAteAfter(LocalDateTime dateTime) {
+    public static Specification<Event> eventDateAfter(LocalDateTime dateTime) {
         if (dateTime == null) {
             return null;
         }
