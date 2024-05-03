@@ -11,5 +11,5 @@ public interface StatService {
 
     List<ViewStats> viewStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique);
 
-    ViewStats viewUniqueIpStatsForUri(String uri);
+    ViewStats viewStatsForSingleUriWithUniqueIps(String uri);
 }

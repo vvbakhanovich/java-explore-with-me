@@ -41,7 +41,7 @@ public class StatController {
     @ResponseStatus(CREATED)
     public EndpointHitDto methodHit(@RequestBody @Valid EndpointHitDto endpointHitDto) {
         EndpointHit endpointHit = endpointHitMapper.toModel(endpointHitDto);
-        log.info("StatController uri '{}', request body '{}'.", "/hit", endpointHitDto);
+        log.info("Adding method hit, request body '{}'.", endpointHitDto);
         EndpointHit savedHit = statService.methodHit(endpointHit);
         return endpointHitMapper.toDto(savedHit);
     }
@@ -54,8 +54,7 @@ public class StatController {
         LocalDateTime decodedStart = decodeLocalDateTime(start);
         LocalDateTime decodedEnd = decodeLocalDateTime(end);
         validateDates(decodedStart, decodedEnd);
-        log.info("StatController uri '{}', start = '{}', end = '{}', uris = '{}', unique = '{}'.", "/stats", start,
-                end, uris, unique);
+        log.info("Requesting stats, start = '{}', end = '{}', uris = '{}', unique = '{}'.", start, end, uris, unique);
         List<ViewStats> statsList = statService.viewStats(decodedStart, decodedEnd, uris, unique);
         return viewStatsMapper.toDtoList(statsList);
     }
@@ -63,7 +62,7 @@ public class StatController {
     @GetMapping("/statistic")
     public ViewStatsDto viewUniqueStatsForUri(@RequestParam String uri) {
         log.info("Requesting stats for unique ips for uri '{}'.", uri);
-        ViewStats stats = statService.viewUniqueIpStatsForUri(uri);
+        ViewStats stats = statService.viewStatsForSingleUriWithUniqueIps(uri);
         return viewStatsMapper.toDto(stats);
     }
 

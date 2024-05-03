@@ -97,7 +97,7 @@ class StatRepositoryTest {
     @Test
     @DisplayName("Search by uri /app2 and unique ip should return stat with 2 hits")
     void find_withHit2UriAndUniqueIp_shouldReturnStatWith2Hits() {
-        List<ViewStats> stats = statRepository.findStatsFromListWithUniqueIps(LocalDateTime.of(2021, 9, 21, 11, 23, 44),
+        List<ViewStats> stats = statRepository.findStatsFromUriListWithUniqueIps(LocalDateTime.of(2021, 9, 21, 11, 23, 44),
                 LocalDateTime.of(2022, 12, 21, 11, 23, 44), List.of("/app2"));
         assertThat(stats.size(), is(1));
         assertThat(stats.get(0).getUri(), is(savedEndpointHit2.getUri()));

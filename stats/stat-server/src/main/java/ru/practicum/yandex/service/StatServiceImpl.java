@@ -34,8 +34,9 @@ public class StatServiceImpl implements StatService {
     }
 
     @Override
-    public ViewStats viewUniqueIpStatsForUri(String uri) {
-        return statRepository.findUniqueIpStatsForUri(uri);
+    public ViewStats viewStatsForSingleUriWithUniqueIps(String uri) {
+        log.info("Requesting stats for unique ip for uri '{}.'", uri);
+        return statRepository.findStatsForUriWithUniqueIps(uri);
     }
 
     private List<ViewStats> getAllStats(LocalDateTime start, LocalDateTime end, List<String> uris) {
@@ -54,7 +55,7 @@ public class StatServiceImpl implements StatService {
             return statRepository.findStatsWithUniqueIps(start, end);
         } else {
             log.info("Requesting stats from unique ips between '{}' and '{}' from uris '{}'.", start, end, uris);
-            return statRepository.findStatsFromListWithUniqueIps(start, end, uris);
+            return statRepository.findStatsFromUriListWithUniqueIps(start, end, uris);
         }
     }
 }
