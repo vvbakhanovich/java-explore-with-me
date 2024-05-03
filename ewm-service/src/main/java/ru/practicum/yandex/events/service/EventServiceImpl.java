@@ -129,7 +129,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Event getEvent(Long id) {
-        return eventRepository.findById(id)
+        return eventRepository.findFullEventById(id)
                 .orElseThrow(() -> new NotFoundException("Event with id '" + id + "' was not found."));
     }
 

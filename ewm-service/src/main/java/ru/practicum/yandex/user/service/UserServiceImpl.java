@@ -106,9 +106,8 @@ public class UserServiceImpl implements UserService {
         getUser(userId);
         final Event foundEvent = getEvent(eventId);
         checkIfUserIsEventInitiator(userId, foundEvent);
-        final Event event = eventRepository.findByIdAndInitiatorId(eventId, userId);
         log.info("Requesting info about event with id '{}' by user with id '{}'.", eventId, userId);
-        return event;
+        return foundEvent;
     }
 
     @Override
@@ -274,7 +273,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Event getEvent(Long eventId) {
-        return eventRepository.findById(eventId)
+        return eventRepository.findFullEventById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id '" + eventId + "' was not found."));
     }
 
