@@ -34,6 +34,7 @@ import static ru.practicum.yandex.user.model.ParticipationStatus.CANCELED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.CONFIRMED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.PENDING;
 import static ru.practicum.yandex.user.model.ParticipationStatus.REJECTED;
+import static ru.practicum.yandex.user.repository.UserSpecification.idIn;
 
 @Service
 @RequiredArgsConstructor
@@ -64,12 +65,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUsers(List<Long> ids, Long from, Integer size) {
         final OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
-        log.info("UserService get users with ids = '{}', from = '{}', size = '{}'.", ids, from, size);
-        if (ids == null) {
-            return userRepository.findAll(pageRequest).getContent();
-        } else {
-            return userRepository.findAllByIdIn(ids, pageRequest).getContent();
-        }
+        Specification<User> idIn = idIn(ids);
+        List<User> users = userRepository.findAll(idIn, pageRequest).getContent();
+        log.info("Requesting users with ids = '{}', from = '{}', size = '{}'.", ids, from, size);
+        return users;
     }
 
     @Override
