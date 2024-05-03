@@ -48,7 +48,7 @@ public class UserController {
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto addEvent(@PathVariable Long userId, @RequestBody @Valid NewEventDto newEventDto) {
-        log.info("UserController, user with id '{}' adding new event '{}'.", userId, newEventDto.getTitle());
+        log.info("User with id '{}' adding new event '{}'.", userId, newEventDto.getTitle());
         final NewEvent newEvent = eventMapper.toModel(newEventDto);
         final Event addedEvent = userService.addEventByUser(userId, newEvent);
         return eventMapper.toDto(addedEvent);
@@ -58,14 +58,14 @@ public class UserController {
     public List<EventShortDto> findEventsFromUser(@PathVariable Long userId,
                                                   @RequestParam(defaultValue = "0") @PositiveOrZero Long from,
                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
-        log.info("UserController, finding events from user with id '{}'.", userId);
+        log.info("Finding events from user with id '{}'.", userId);
         final List<Event> events = userService.findEventsFromUser(userId, from, size);
         return eventMapper.toShortDtoList(events);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
     public EventFullDto getFullEventByInitiator(@PathVariable Long userId, @PathVariable Long eventId) {
-        log.info("UserController, get full event with id '{}' by user with id '{}.", eventId, userId);
+        log.info("Requesting full event with id '{}' by user with id '{}.", eventId, userId);
         final Event event = userService.getFullEventByInitiator(userId, eventId);
         return eventMapper.toDto(event);
     }
@@ -74,7 +74,7 @@ public class UserController {
     public EventFullDto updateEvent(@PathVariable Long userId,
                                     @PathVariable Long eventId,
                                     @RequestBody @Valid EventUpdateRequest updateEvent) {
-        log.info("UserController, update event with id '{}', by user with id '{}'.", eventId, userId);
+        log.info("Updating event with id '{}', by user with id '{}'.", eventId, userId);
         final Event updatedEvent = userService.updateEvent(userId, eventId, updateEvent);
         return eventMapper.toDto(updatedEvent);
     }
@@ -83,14 +83,14 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto addParticipationRequestToEvent(@PathVariable Long userId,
                                                                   @RequestParam Long eventId) {
-        log.info("UserController, user with id '{}' requesting participation in event with id '{}'.", userId, eventId);
+        log.info("User with id '{}' requesting participation in event with id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = userService.addParticipationRequestToEvent(userId, eventId);
         return participationMapper.toDto(participationRequest);
     }
 
     @GetMapping("/{userId}/requests")
     public List<ParticipationRequestDto> findParticipationRequestsByUser(@PathVariable Long userId) {
-        log.info("UserController, user with id '{}' requesting participation request list.", userId);
+        log.info("User with id '{}' requesting participation request list.", userId);
         final List<ParticipationRequest> participationRequests = userService.findParticipationRequestsByUser(userId);
         return participationMapper.toDtoList(participationRequests);
     }
@@ -98,7 +98,7 @@ public class UserController {
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
     public ParticipationRequestDto cancelOwnParticipationRequest(@PathVariable Long userId,
                                                                  @PathVariable Long requestId) {
-        log.info("UserController, user with id '{}' canceling request with id '{}'.", userId, requestId);
+        log.info("User with id '{}' canceling request with id '{}'.", userId, requestId);
         final ParticipationRequest canceledRequest = userService.cancelOwnParticipationRequest(userId, requestId);
         return participationMapper.toDto(canceledRequest);
     }
@@ -106,7 +106,7 @@ public class UserController {
     @GetMapping("/{userId}/events/{eventId}/requests")
     public List<ParticipationRequestDto> findParticipationRequestsForUsersEvent(@PathVariable Long userId,
                                                                                 @PathVariable Long eventId) {
-        log.info("UserController, getting participation requests in event with id '{}' initiated by user with id '{}'.",
+        log.info("Getting participation requests in event with id '{}' initiated by user with id '{}'.",
                 eventId, userId);
         final List<ParticipationRequest> participationRequests = userService
                 .findParticipationRequestsForUsersEvent(userId, eventId);
