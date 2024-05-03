@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = LocalDateTimeValidator.class)
 public @interface ValidEventStart {
 
-    String message() default "EventDate must be at least 2 hours beforehand.";
+    String message() default "Invalid event date.";
 
     Class<?>[] groups() default {};
 

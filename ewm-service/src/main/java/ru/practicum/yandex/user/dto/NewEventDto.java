@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 @Builder
 public class NewEventDto {
 
-    @NotBlank(message = "Annotation must not be blank or empty and contain between 20 and 2000 characters")
-    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters")
+    @NotBlank(message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
+    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
     private String annotation;
 
     @NotNull(message = "Event must have category.")
@@ -34,11 +34,11 @@ public class NewEventDto {
     private String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @ValidEventStart
+    @ValidEventStart(message = "Date of event must be at least 2 hours later than current time.")
     private LocalDateTime eventDate;
 
-    @NotBlank(message = "Title must not be blank or empty and contain between 20 and 7000 characters.")
-    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 20 and 7000 characters.")
+    @NotBlank(message = "Title must not be blank or empty and contain between 3 and 120 characters.")
+    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 3 and 120 characters.")
     private String title;
 
     @NotNull(message = "Location must be specified.")
