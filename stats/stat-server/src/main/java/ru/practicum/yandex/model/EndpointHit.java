@@ -1,6 +1,7 @@
 package ru.practicum.yandex.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 @ToString
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
+@Builder
 public class EndpointHit {
 
     @Id
