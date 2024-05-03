@@ -12,6 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import ru.practicum.yandex.category.dto.CategoryDto;
 import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.events.dto.EventShortDto;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
@@ -22,6 +23,7 @@ import ru.practicum.yandex.shared.exception.EventNotModifiableException;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.NewEventDto;
+import ru.practicum.yandex.user.dto.UserShortDto;
 import ru.practicum.yandex.user.mapper.ParticipationMapper;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.service.UserService;
@@ -45,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
-class UserControllerTest {
+class UserEventControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -83,6 +85,7 @@ class UserControllerTest {
 
     @BeforeEach
     void init() {
+        LocationDto locationDto = new LocationDto(41.2F, 43.3F);
         newEventDto = NewEventDto.builder()
                 .annotation("new event dto annotation")
                 .description("new added event description")
@@ -91,10 +94,16 @@ class UserControllerTest {
                 .title("title")
                 .paid(true)
                 .categoryId(3L)
-                .location(new LocationDto(41.2F, 43.3F))
+                .location(locationDto)
                 .requestModeration(false)
                 .build();
         newEvent = new NewEvent();
+        CategoryDto categoryDto = CategoryDto.builder()
+                .name("category name")
+                .build();
+        UserShortDto userShortDto = UserShortDto.builder()
+                .name("username")
+                .build();
         eventFullDto = EventFullDto.builder()
                 .annotation("full event dto annotation")
                 .description("event full dto description")
@@ -102,6 +111,9 @@ class UserControllerTest {
                 .participantLimit(213)
                 .title("title")
                 .paid(true)
+                .location(locationDto)
+                .initiator(userShortDto)
+                .category(categoryDto)
                 .requestModeration(false)
                 .build();
         event = new Event();
@@ -110,6 +122,8 @@ class UserControllerTest {
                 .title("short title")
                 .eventDate(LocalDateTime.of(2028, 10, 11, 12, 43, 12))
                 .paid(true)
+                .category(categoryDto)
+                .initiator(userShortDto)
                 .build();
         userId = 1L;
         eventId = 2L;
@@ -139,6 +153,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
 
         verify(eventMapper, times(1)).toModel(newEventDto);
@@ -169,6 +189,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -201,6 +227,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -377,6 +409,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -409,6 +447,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -585,6 +629,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -617,6 +667,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -823,6 +879,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -880,6 +942,10 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.[0].eventDate", is(shortDtos.get(0).getEventDate().format(ofPattern(formatPattern)))))
                 .andExpect(jsonPath("$.[0].paid", is(shortDtos.get(0).getPaid())))
                 .andExpect(jsonPath("$.[0].title", is(shortDtos.get(0).getTitle())))
+                .andExpect(jsonPath("$.[0].category.id", is(shortDtos.get(0).getCategory().getId())))
+                .andExpect(jsonPath("$.[0].category.name", is(shortDtos.get(0).getCategory().getName())))
+                .andExpect(jsonPath("$.[0].initiator.id", is(shortDtos.get(0).getInitiator().getId())))
+                .andExpect(jsonPath("$.[0].initiator.name", is(shortDtos.get(0).getInitiator().getName())))
                 .andExpect(jsonPath("$.[0].confirmedRequests", is(shortDtos.get(0).getConfirmedRequests()), Long.class))
                 .andExpect(jsonPath("$.[0].views", is(shortDtos.get(0).getViews()), Long.class));
 
@@ -917,8 +983,6 @@ class UserControllerTest {
     @SneakyThrows
     @DisplayName("Get event by initiator")
     void getFullEventByInitiator_shouldReturnEventAndStatus200() {
-        Long from = 0L;
-        Integer size = 10;
         when(userService.getFullEventByInitiator(userId, eventId))
                 .thenReturn(event);
         when(eventMapper.toDto(event))
@@ -932,6 +996,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -944,8 +1014,6 @@ class UserControllerTest {
     @SneakyThrows
     @DisplayName("Get event by initiator not found")
     void getFullEventByInitiator_whenInitiatorNotFound_shouldThrowNotFoundExceptionAnd404Status() {
-        Long from = 0L;
-        Integer size = 10;
         when(userService.getFullEventByInitiator(userId, eventId))
                 .thenThrow(new NotFoundException("User with id '" + userId + "' was not found."));
 
@@ -964,8 +1032,6 @@ class UserControllerTest {
     @SneakyThrows
     @DisplayName("Get event by initiator, user not authorized")
     void getFullEventByInitiator_whenUserNotAuthorized_shouldThrowNotAuthorizedExceptionAnd404Status() {
-        Long from = 0L;
-        Integer size = 10;
         when(userService.getFullEventByInitiator(userId, eventId))
                 .thenThrow(new NotAuthorizedException("User with id '" + userId + "' is not an initiator of event with id '" +
                         event.getId() + "'."));
@@ -1001,6 +1067,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1029,6 +1101,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1057,6 +1135,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1178,6 +1262,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1206,6 +1296,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1234,6 +1330,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1331,6 +1433,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1359,6 +1467,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1457,6 +1571,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));
@@ -1487,6 +1607,12 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.paid", is(eventFullDto.isPaid())))
                 .andExpect(jsonPath("$.description", is(eventFullDto.getDescription())))
                 .andExpect(jsonPath("$.title", is(eventFullDto.getTitle())))
+                .andExpect(jsonPath("$.location.lon", is(eventFullDto.getLocation().getLon()), Float.class))
+                .andExpect(jsonPath("$.location.lat", is(eventFullDto.getLocation().getLat()), Float.class))
+                .andExpect(jsonPath("$.category.id", is(eventFullDto.getCategory().getId())))
+                .andExpect(jsonPath("$.category.name", is(eventFullDto.getCategory().getName())))
+                .andExpect(jsonPath("$.initiator.id", is(eventFullDto.getInitiator().getId())))
+                .andExpect(jsonPath("$.initiator.name", is(eventFullDto.getInitiator().getName())))
                 .andExpect(jsonPath("$.confirmedRequests", is(eventFullDto.getNumberOfParticipants())))
                 .andExpect(jsonPath("$.views", is(eventFullDto.getViews()), Long.class))
                 .andExpect(jsonPath("$.participantLimit", is(eventFullDto.getParticipantLimit())));

@@ -221,8 +221,8 @@ public class UserServiceImpl implements UserService {
         int participantLimit = event.getParticipantLimit();
 
         if (participantLimit == 0 || !event.isRequestModeration()) {
-            throw new EventNotModifiableException("Event has no participant limit or pre moderation if off. No need " +
-                    "to confirm requests");
+            throw new EventNotModifiableException("Event with id '" + event.getId() + "'has no participant limit or " +
+                    "pre moderation if off. No need to confirm requests");
         }
 
         int currentParticipants = event.getNumberOfParticipants();
@@ -249,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
     private ParticipationRequest getParticipationRequest(Long requestId) {
         return participationRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("Participation request with id '{}' was not found."));
+                .orElseThrow(() -> new NotFoundException("Participation request with id '" + requestId + "' was not found."));
     }
 
     private User getUser(Long userId) {
@@ -302,7 +302,7 @@ public class UserServiceImpl implements UserService {
                 .findByRequesterIdAndEventId(userId, eventId);
         if (participationRequest.isPresent()) {
             throw new RequestAlreadyExistsException("Participation request by user with id '" + userId + "' to event " +
-                    "with id '" + eventId + "' already exists. ");
+                    "with id '" + eventId + "' already exists.");
         }
     }
 
