@@ -20,21 +20,21 @@ import java.time.LocalDateTime;
 @Builder
 public class EventUpdateRequest {
 
-    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters")
+    @Size(min = 20, max = 2000, message = "Annotation must not be blank or empty and contain between 20 and 2000 characters.")
     private String annotation;
 
-    @Positive
+    @Positive(message = "Category id must be positive.")
     @JsonAlias("category")
     private Long categoryId;
 
     @Size(min = 20, max = 7000, message = "Description must not be blank or empty and contain between 20 and 7000 characters.")
     private String description;
 
-    @ValidEventStart
+    @ValidEventStart(message = "Date of event must be at least 2 hours later than current time.")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
-    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 20 and 7000 characters.")
+    @Size(min = 3, max = 120, message = "Title must not be blank or empty and contain between 3 and 120 characters.")
     private String title;
 
     private LocationDto location;
