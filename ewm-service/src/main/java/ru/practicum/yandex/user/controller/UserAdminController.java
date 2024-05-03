@@ -36,7 +36,7 @@ public class UserAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid NewUserRequest userShortDto) {
-        log.info("UserController create request for user '{}'.", userShortDto);
+        log.info("Adding new user: '{}'.", userShortDto);
         User userToAdd = userMapper.toModel(userShortDto);
         User savedUser = userService.createUser(userToAdd);
         return userMapper.toDto(savedUser);
@@ -46,7 +46,7 @@ public class UserAdminController {
     public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                   @RequestParam(defaultValue = "0") Long from,
                                   @RequestParam(defaultValue = "10") Integer size) {
-        log.info("UserController get request for ids = '{}', from = '{}', size = '{}'.", ids, from, size);
+        log.info("Requesting users, ids = '{}', from = '{}', size = '{}'.", ids, from, size);
         List<User> users = userService.getUsers(ids, from, size);
         return userMapper.toDtoList(users);
     }
@@ -54,7 +54,7 @@ public class UserAdminController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
-        log.info("UserController delete request for userId = '{}'.", userId);
+        log.info("Deleting user with id = '{}'.", userId);
         userService.deleteUser(userId);
     }
 }
