@@ -46,7 +46,7 @@ public class NewEventDto {
 
     private boolean paid;
 
-    @PositiveOrZero(message = "Number of paricipants must be positive or zero.")
+    @PositiveOrZero(message = "Number of participants must be positive or zero.")
     private int participantLimit;
 
     private boolean requestModeration = true;
