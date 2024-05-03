@@ -49,10 +49,10 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Requesting events with filter '{}'.", searchFilter);
         if (searchFilter.isOnlyAvailable()) {
             return getOnlyAvailableRequests(events);
         }
+        log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
         return events;
     }
 
@@ -74,10 +74,10 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        log.info("Requesting full events info by admin  with filter '{}'.", searchFilter);
         if (searchFilter.isOnlyAvailable()) {
             return getOnlyAvailableRequests(events);
         }
+        log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
         return events;
     }
 
