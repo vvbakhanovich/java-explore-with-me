@@ -118,8 +118,9 @@ public class UserServiceImpl implements UserService {
         checkEventIsPublished(eventToUpdate);
         changeStateIfNeeded(updateEvent, eventToUpdate);
         eventMapper.updateEvent(updateEvent, eventToUpdate);
+        Event updatedEvent = eventRepository.save(eventToUpdate);
         log.info("Event with id '{}' was updated by user with id '{}'.", eventId, userId);
-        return eventToUpdate;
+        return updatedEvent;
     }
 
     @Override
@@ -129,7 +130,7 @@ public class UserServiceImpl implements UserService {
         final Event event = getEvent(eventId);
         checkIfUserCanMakeRequest(userId, eventId, event);
         checkIfParticipationRequestExists(userId, eventId);
-        checkIfEventIsPublished(event);
+        checkIfEventIsNotPublished(event);
         log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = createParticipantRequest(user, event);
         final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
@@ -313,7 +314,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void checkIfEventIsPublished(Event event) {
+    private void checkIfEventIsNotPublished(Event event) {
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotAuthorizedException("User can not make request to not published event.");
         }
