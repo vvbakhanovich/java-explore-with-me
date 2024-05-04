@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
         final Event event = getEvent(eventId);
         checkIfUserCanMakeRequest(userId, eventId, event);
         checkIfParticipationRequestExists(userId, eventId);
-        checkIfEventIsNotPublished(event);
+        checkIfEventIsNotPublished(event, userId);
         log.info("User with id '{}' added participation request for event with id '{}'.", userId, eventId);
         final ParticipationRequest participationRequest = createParticipantRequest(user, event);
         final ParticipationRequest savedRequest = participationRequestRepository.save(participationRequest);
@@ -192,7 +192,8 @@ public class UserServiceImpl implements UserService {
     private int populateStatusUpdateDto(EventRequestStatusUpdateRequest statusUpdate, List<ParticipationRequest> participationRequests, EventRequestStatusUpdateDto eventRequestStatusUpdate, int lastConfirmedRequest, Event event, int participantLimit) {
         for (ParticipationRequest participationRequest : participationRequests) {
             if (!participationRequest.getStatus().equals(PENDING)) {
-                throw new NotAuthorizedException("For status change request must have status PENDING.");
+                throw new NotAuthorizedException("For status change request must have status PENDING. Current status: '"
+                        + participationRequest.getStatus() + "'");
             }
             participationRequest.setStatus(statusUpdate.getStatus());
             participationRequestRepository.save(participationRequest);
@@ -222,8 +223,9 @@ public class UserServiceImpl implements UserService {
         int participantLimit = event.getParticipantLimit();
 
         if (participantLimit == 0 || !event.isRequestModeration()) {
-            throw new EventNotModifiableException("Event with id '" + event.getId() + "'has no participant limit or " +
-                    "pre moderation if off. No need to confirm requests");
+            throw new EventNotModifiableException("Event with id '" + event.getId() + "' has no participant limit or " +
+                    "pre moderation if off. No need to confirm requests. Participant limit: '" + event.getParticipantLimit()
+                    + "', Moderation: '" + event.isRequestModeration() + "'");
         }
 
         int currentParticipants = event.getNumberOfParticipants();
@@ -275,7 +277,7 @@ public class UserServiceImpl implements UserService {
 
     private Event getEvent(Long eventId) {
         return eventRepository.findFullEventById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id '" + eventId + "' was not found."));
+                .orElseThrow(() -> new NotFoundException("Event with id '" + eventId + "' not found."));
     }
 
     private void checkEventIsPublished(Event event) {
@@ -314,9 +316,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void checkIfEventIsNotPublished(Event event) {
+    private void checkIfEventIsNotPublished(Event event, Long userId) {
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotAuthorizedException("User can not make request to not published event.");
+            throw new NotAuthorizedException("User with id '" + userId + "'can not make request to not published event " +
+                    "with id '" + event.getId() + "'.");
         }
     }
 
@@ -326,7 +329,7 @@ public class UserServiceImpl implements UserService {
                 .event(event)
                 .build();
         if (event.getNumberOfParticipants() == event.getParticipantLimit() && event.getParticipantLimit() != 0) {
-            throw new NotAuthorizedException("Participant limit is exceeded.");
+            throw new NotAuthorizedException("Participant limit is exceeded for event with id '" + event.getId() + "'.");
         } else if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
             participationRequest.setStatus(CONFIRMED);
             addConfirmedRequestToEvent(event);
