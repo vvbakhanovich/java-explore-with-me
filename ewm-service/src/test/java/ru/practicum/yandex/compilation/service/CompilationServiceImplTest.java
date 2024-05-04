@@ -15,7 +15,6 @@ import ru.practicum.yandex.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.yandex.compilation.model.Compilation;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.Location;
-import ru.practicum.yandex.events.repository.EventRepository;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.User;
