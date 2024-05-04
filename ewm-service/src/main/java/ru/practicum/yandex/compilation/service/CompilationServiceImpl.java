@@ -15,7 +15,6 @@ import ru.practicum.yandex.shared.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,7 +35,7 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = Compilation.builder()
                 .title(newCompilationDto.getTitle())
                 .pinned(newCompilationDto.isPinned())
-                .events(new LinkedHashSet<>(compilationEvents))
+                .events(compilationEvents)
                 .build();
         Compilation savedCompilation = compilationRepository.save(compilation);
         log.info("Compilation with id '{}' was saved.", savedCompilation.getId());
@@ -64,7 +63,7 @@ public class CompilationServiceImpl implements CompilationService {
         List<Specification<Compilation>> specifications = searchFilterToSpecificationList(pinned);
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Compilation> compilations = compilationRepository
-                .findCompilationsWithEvents(specifications.stream().reduce(Specification::and).orElse(null), pageRequest);
+                .findAll(specifications.stream().reduce(Specification::and).orElse(null), pageRequest).getContent();
         log.info("Requesting compilations, search filter: pinned - '{}', from - '{}', size - '{}'. List size - '{}'.",
                 pinned, from, size, compilations.size());
         return compilations;
@@ -92,7 +91,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (updateRequest.getEvents() != null) {
             List<Event> events = eventRepository.findAllById(updateRequest.getEvents());
             bindEventsToCompilation(compilation, events);
-            compilation.setEvents(new LinkedHashSet<>(events));
+            compilation.setEvents(events);
         }
         if (updateRequest.getTitle() != null) {
             compilation.setTitle(updateRequest.getTitle());
@@ -109,7 +108,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' was not found."));
+                .orElseThrow(() -> new NotFoundException("Compilation with id '" + compId + "' not found."));
     }
 
     private List<Event> getCompilationEvents(NewCompilationDto newCompilationDto, List<Long> compilationEventIds) {

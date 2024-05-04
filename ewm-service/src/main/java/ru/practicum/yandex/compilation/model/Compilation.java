@@ -14,8 +14,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "compilations")
@@ -37,5 +37,5 @@ public class Compilation {
 
     @ManyToMany(mappedBy = "compilations")
     @ToString.Exclude
-    private Set<Event> events = new LinkedHashSet<>();
+    private List<Event> events = new ArrayList<>();
 }
