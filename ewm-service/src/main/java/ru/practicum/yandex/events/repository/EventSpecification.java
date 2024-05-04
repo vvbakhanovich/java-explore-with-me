@@ -69,4 +69,12 @@ public class EventSpecification {
         }
         return (root, query, criteriaBuilder) -> criteriaBuilder.in(root.get("initiator").get("id")).value(userIds);
     }
+
+    public static Specification<Event> isAvailable(boolean isAvailable) {
+        if (!isAvailable) {
+            return null;
+        }
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("participantLimit"),
+                root.get("numberOfParticipants"));
+    }
 }

@@ -30,6 +30,7 @@ import static ru.practicum.yandex.events.repository.EventSpecification.eventDate
 import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusEquals;
 import static ru.practicum.yandex.events.repository.EventSpecification.eventStatusIn;
 import static ru.practicum.yandex.events.repository.EventSpecification.initiatorIdIn;
+import static ru.practicum.yandex.events.repository.EventSpecification.isAvailable;
 import static ru.practicum.yandex.events.repository.EventSpecification.isPaid;
 import static ru.practicum.yandex.events.repository.EventSpecification.textInAnnotationOrDescriptionIgnoreCase;
 
@@ -49,9 +50,6 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        if (searchFilter.isOnlyAvailable()) {
-            return getOnlyAvailableRequests(events);
-        }
         log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
         return events;
     }
@@ -60,7 +58,7 @@ public class EventServiceImpl implements EventService {
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new NotFoundException("Event is not published.");
+            throw new NotFoundException("Event with id '" + id + "' is not published. State: '" + event.getState() + "'");
         }
         event.setViews(views);
         eventRepository.save(event);
@@ -74,9 +72,6 @@ public class EventServiceImpl implements EventService {
         List<Specification<Event>> specifications = eventAdminSearchFilterToSpecifications(searchFilter);
         List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
                 pageRequest).getContent();
-        if (searchFilter.isOnlyAvailable()) {
-            return getOnlyAvailableRequests(events);
-        }
         log.info("Requesting full events info by admin  with filter '{}'. List size '{}'.", searchFilter, events.size());
         return events;
     }
@@ -110,12 +105,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private static List<Event> getOnlyAvailableRequests(List<Event> events) {
-        return events.stream()
-                .filter(event -> event.getNumberOfParticipants() < event.getParticipantLimit())
-                .collect(Collectors.toList());
-    }
-
     private void checkIfEventIsCanceled(Event event) {
         if (event.getState().equals(EventState.CANCELED)) {
             throw new NotAuthorizedException("Can not publish canceled event.");
@@ -141,10 +130,10 @@ public class EventServiceImpl implements EventService {
 
         switch (eventSort) {
             case VIEWS:
-                sort = Sort.by(Sort.Direction.ASC, "views");
+                sort = Sort.by(Sort.Direction.DESC, "views");
                 break;
             case EVENT_DATE:
-                sort = Sort.by(Sort.Direction.ASC, "eventDate");
+                sort = Sort.by(Sort.Direction.DESC, "eventDate");
                 break;
             default:
                 throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
@@ -159,6 +148,7 @@ public class EventServiceImpl implements EventService {
         resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
         resultSpecification.add(isPaid(searchFilter.getPaid()));
         resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        resultSpecification.add(isAvailable(searchFilter.isOnlyAvailable()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -168,6 +158,7 @@ public class EventServiceImpl implements EventService {
         resultSpecification.add(initiatorIdIn(searchFilter.getUsers()));
         resultSpecification.add(categoriesIdIn(searchFilter.getCategories()));
         resultSpecification.add(eventDateInRange(searchFilter.getRangeStart(), searchFilter.getRangeEnd()));
+        resultSpecification.add(isAvailable(searchFilter.isOnlyAvailable()));
         return resultSpecification.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

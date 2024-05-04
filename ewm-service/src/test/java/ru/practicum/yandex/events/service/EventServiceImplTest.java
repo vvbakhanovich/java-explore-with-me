@@ -10,11 +10,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.service.CategoryService;
+import ru.practicum.yandex.events.dto.EventAdminSearchFilter;
 import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventSort;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.model.Event;
+import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
+import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.User;
@@ -27,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -42,13 +46,19 @@ class EventServiceImplTest {
     @Autowired
     private CategoryService categoryService;
 
-    private Event savedEvent;
+    private Event savedEvent1;
 
-    private User savedUser;
+    private Event savedEvent2;
+
+    private User savedUser1;
+
+    private User savedUser2;
 
     private EventSearchFilter searchFilter;
 
-    private Category savedCategory;
+    private Category savedCategory1;
+
+    private Category savedCategory2;
 
     @BeforeEach
     void init() {
@@ -56,27 +66,48 @@ class EventServiceImplTest {
                 .lat(-414.43F)
                 .lon(43.43F)
                 .build();
-        Category category = Category.builder()
-                .name("category")
+        Category category1 = Category.builder()
+                .name("category1")
                 .build();
-        savedCategory = categoryService.addCategory(category);
+        savedCategory1 = categoryService.addCategory(category1);
+        Category category2 = Category.builder()
+                .name("category2")
+                .build();
+        savedCategory2 = categoryService.addCategory(category2);
         User user1 = User.builder()
-                .name("name")
-                .email("user@email.com")
+                .name("name1")
+                .email("user1@email.com")
                 .build();
-        savedUser = userService.createUser(user1);
-        NewEvent newEvent = NewEvent.builder()
-                .annotation("annotation")
-                .description("description")
-                .eventDate(LocalDateTime.of(2025, 10, 11, 12,23, 11))
+        savedUser1 = userService.createUser(user1);
+        User user2 = User.builder()
+                .name("name2")
+                .email("user2@email.com")
+                .build();
+        savedUser2 = userService.createUser(user2);
+        NewEvent newEvent1 = NewEvent.builder()
+                .annotation("annotation1")
+                .description("description1")
+                .eventDate(LocalDateTime.of(2025, 10, 11, 12, 23, 11))
                 .participantLimit(134)
                 .requestModeration(false)
                 .title("title")
                 .paid(false)
                 .location(location)
-                .categoryId(savedCategory.getId())
+                .categoryId(savedCategory1.getId())
                 .build();
-        savedEvent = userService.addEventByUser(savedUser.getId(), newEvent);
+        NewEvent newEvent2 = NewEvent.builder()
+                .annotation("annotation2")
+                .description("description2")
+                .eventDate(LocalDateTime.of(2025, 10, 11, 12, 23, 11))
+                .participantLimit(1)
+                .requestModeration(false)
+                .title("title")
+                .paid(true)
+                .location(location)
+                .categoryId(savedCategory2.getId())
+                .build();
+        savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
+        savedEvent2 = userService.addEventByUser(savedUser1.getId(), newEvent2);
     }
 
     @Test
@@ -85,7 +116,7 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
                 .build();
@@ -94,7 +125,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -103,7 +134,7 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("NNOTaT")
                 .build();
@@ -112,16 +143,79 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
-    @DisplayName("Search by paid")
+    @DisplayName("Search several events by text ignore case")
+    void findEvents_whenSearchSeveralEventsByTextIgnoreCase_shouldReturnEvents() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        searchFilter = EventSearchFilter.builder()
+                .text("NNOTaT")
+                .sort(EventSort.EVENT_DATE)
+                .build();
+
+        List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+        assertThat(events.get(1).getId(), is(savedEvent2.getId()));
+    }
+
+    @Test
+    @DisplayName("Search several events by text ignore case")
+    void findEvents_whenSearchSeveralEventsByTextIgnoreCaseOrderByViews_shouldReturnEvents() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        eventService.getFullEventInfoById(savedEvent2.getId(), 2L);
+        searchFilter = EventSearchFilter.builder()
+                .text("NNOTaT")
+                .sort(EventSort.VIEWS)
+                .build();
+
+        List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).getId(), is(savedEvent2.getId()));
+        assertThat(events.get(1).getId(), is(savedEvent1.getId()));
+    }
+
+    @Test
+    @DisplayName("Search several events by text ignore case")
+    void findEvents_whenSearchSeveralEventsByTextIgnoreCase_shouldReturnOneEvent() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        searchFilter = EventSearchFilter.builder()
+                .text("1")
+                .sort(EventSort.EVENT_DATE)
+                .build();
+
+        List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(1));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+    }
+
+    @Test
+    @DisplayName("Search by paid = false")
     void findEvents_whenSearchByPaid_shouldReturnEvent() {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .paid(false)
                 .build();
@@ -130,7 +224,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -139,7 +233,7 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .paid(true)
                 .build();
@@ -156,16 +250,16 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -174,16 +268,16 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
-                .categories(List.of(savedCategory.getId(), 99L, 344L))
+                .categories(List.of(savedCategory1.getId(), 99L, 344L))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -192,17 +286,17 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -211,10 +305,10 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
-                .rangeStart(LocalDateTime.of(2023, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2024, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2023, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
@@ -229,7 +323,7 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .onlyAvailable(true)
                 .build();
@@ -238,9 +332,8 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
-
 
 
     @Test
@@ -262,17 +355,17 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -281,10 +374,10 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
                 .build();
 
@@ -292,7 +385,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -301,20 +394,20 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .build();
 
         List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -323,13 +416,13 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .onlyAvailable(true)
                 .build();
 
@@ -337,7 +430,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -346,13 +439,13 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .onlyAvailable(true)
                 .sort(EventSort.EVENT_DATE)
                 .build();
@@ -361,7 +454,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -370,13 +463,13 @@ class EventServiceImplTest {
         EventUpdateRequest updateRequest = EventUpdateRequest.builder()
                 .stateAction(StateAction.PUBLISH_EVENT)
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("annot")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .onlyAvailable(true)
                 .build();
 
@@ -384,7 +477,7 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
@@ -400,13 +493,13 @@ class EventServiceImplTest {
                         " \n" +
                         "Nulla eius voluptatem aut odit. Ad voluptatem sint. Nostrum hic consequatur voluptatem aperiam aut. Sint autem maiores error et quas qui tempora animi omnis. Debitis aut consequuntur fugit quasi molestiae iste occaecati eaque perspiciatis.")
                 .build();
-        eventService.updateEventByAdmin(savedEvent.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
         searchFilter = EventSearchFilter.builder()
                 .text("Ducimus aut nihil praesentium officia. Exercitationem voluptates sint incidunt quia voluptas itaque itaque commodi. Facilis quis vero voluptas adipisci et est quia. Repudiandae qui vero quisquam.")
-                .categories(List.of(savedCategory.getId()))
+                .categories(List.of(savedCategory1.getId()))
                 .paid(false)
-                .rangeStart(LocalDateTime.of(2024, 10, 11, 12,23, 11))
-                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12,23, 11))
+                .rangeStart(LocalDateTime.of(2024, 10, 11, 12, 23, 11))
+                .rangeEnd(LocalDateTime.of(2026, 10, 11, 12, 23, 11))
                 .onlyAvailable(true)
                 .sort(EventSort.VIEWS)
                 .build();
@@ -415,18 +508,125 @@ class EventServiceImplTest {
 
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.get(0).getId(), is(savedEvent.getId()));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
     }
 
     @Test
-    void getFullEventInfoById() {
+    @DisplayName("Get event by id")
+    void getFullEventInfoById_whenEventExists_shouldReturnEventWithViews() {
+        long views = 10L;
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+
+        Event event = eventService.getFullEventInfoById(savedEvent1.getId(), views);
+
+        assertThat(event, notNullValue());
+        assertThat(event.getId(), is(savedEvent1.getId()));
+        assertThat(event.getViews(), is(views));
     }
 
     @Test
-    void getFullEventsInfoByAdmin() {
+    @DisplayName("Get not published event by id")
+    void getFullEventInfoById_whenEventIsNotPublished_shouldThrowNotFoundException() {
+        long views = 10L;
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> eventService.getFullEventInfoById(savedEvent1.getId(), views));
+
+        assertThat(e.getMessage(), is("Event with id '" + savedEvent1.getId() + "' is not published. State: '"
+                + savedEvent1.getState() + "'"));
     }
 
     @Test
-    void updateEventByAdmin() {
+    @DisplayName("Get not non existing event")
+    void getFullEventInfoById_whenEventIsNotExists_shouldThrowNotFoundException() {
+        long views = 10L;
+        NotFoundException e = assertThrows(NotFoundException.class,
+                () -> eventService.getFullEventInfoById(999L, views));
+
+        assertThat(e.getMessage(), is("Event with id '" + 999L + "' was not found."));
+    }
+
+    @Test
+    @DisplayName("Get events by admin without filter")
+    void getFullEventsInfoByAdmin_whenSearchFilterIsEmpty_shouldReturnAllEventsUnsorted() {
+        EventAdminSearchFilter searchFilter = EventAdminSearchFilter.builder()
+                .build();
+
+        List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+        assertThat(events.get(1).getId(), is(savedEvent2.getId()));
+    }
+
+    @Test
+    @DisplayName("Get only published events by admin")
+    void getFullEventsInfoByAdmin_whenSearchByPublished_shouldReturnPublishedEventsUnsorted() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        EventAdminSearchFilter searchFilter = EventAdminSearchFilter.builder()
+                .states(List.of(EventState.PUBLISHED))
+                .build();
+
+        List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(1));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+    }
+
+    @Test
+    @DisplayName("Get only available events by admin")
+    void getFullEventsInfoByAdmin_whenSearchByAvailable_shouldReturnNotPaidEventsUnsorted() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        userService.addParticipationRequestToEvent(savedUser2.getId(), savedEvent2.getId());
+        EventAdminSearchFilter searchFilter = EventAdminSearchFilter.builder()
+                .onlyAvailable(true)
+                .build();
+
+        List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(1));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+    }
+
+    @Test
+    @DisplayName("Get events by admin search by category")
+    void getFullEventsInfoByAdmin_whenSearchByCategory_shouldReturnNotPaidEventsUnsorted() {
+        EventAdminSearchFilter searchFilter = EventAdminSearchFilter.builder()
+                .categories(List.of(savedCategory1.getId()))
+                .build();
+
+        List<Event> events = eventService.getFullEventsInfoByAdmin(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(1));
+        assertThat(events.get(0).getId(), is(savedEvent1.getId()));
+    }
+
+    @Test
+    @DisplayName("Publish event")
+    void updateEventByAdmin_whenPublishRequest_shouldSetEventStateToPublish() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+
+        Event updatedEvent = eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+
+        assertThat(updatedEvent, notNullValue());
+        assertThat(updatedEvent.getState(), is(EventState.PUBLISHED));
+        assertThat(updatedEvent.getTitle(), is(savedEvent1.getTitle()));
+        assertThat(updatedEvent.getDescription(), is(savedEvent1.getDescription()));
+        assertThat(updatedEvent.getAnnotation(), is(savedEvent1.getAnnotation()));
+        assertThat(updatedEvent.isRequestModeration(), is(savedEvent1.isRequestModeration()));
     }
 }
