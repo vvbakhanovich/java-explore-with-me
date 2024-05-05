@@ -26,8 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = EventController.class)
-class EventControllerTest {
+@WebMvcTest(controllers = EventPublicController.class)
+class EventPublicControllerTest {
 
     @MockBean
     private EventService eventService;

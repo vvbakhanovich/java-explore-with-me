@@ -43,6 +43,16 @@ public class EventServiceImpl implements EventService {
 
     private final EventMapper eventMapper;
 
+    /**
+     * Find event according to search filter. Only published events will be displayed. Text search (in annotation and
+     * description) is ignore case. If no date range is specified, than event with event date after current date will be
+     * displayed.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @return list of events
+     */
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
         Sort sort = getSort(searchFilter.getSort());
@@ -54,6 +64,13 @@ public class EventServiceImpl implements EventService {
         return events;
     }
 
+    /**
+     * Get full event info by event id. Event must be published.
+     *
+     * @param id    event id to find
+     * @param views number of event views
+     * @return found event
+     */
     @Override
     public Event getFullEventInfoById(Long id, Long views) {
         Event event = getEvent(id);
@@ -66,6 +83,14 @@ public class EventServiceImpl implements EventService {
         return event;
     }
 
+    /**
+     * Find full events info according to search filter. If nothing was found, returns empty list.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @return found events
+     */
     @Override
     public List<Event> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter, Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
@@ -76,6 +101,14 @@ public class EventServiceImpl implements EventService {
         return events;
     }
 
+    /**
+     * Modify event parameters and status. Event must have state 'PENDING' to be modified. Only not published event can
+     * be canceled.
+     *
+     * @param eventId       event id to modify
+     * @param updateRequest event parameters to update
+     * @return updated event
+     */
     @Override
     @Transactional
     public Event updateEventByAdmin(Long eventId, EventUpdateRequest updateRequest) {
