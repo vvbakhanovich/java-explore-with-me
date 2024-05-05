@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.compilation.dto.NewCompilationDto;
 import ru.practicum.yandex.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.yandex.compilation.model.Compilation;
@@ -29,6 +30,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
 
     @Override
+    @Transactional
     public Compilation addCompilation(NewCompilationDto newCompilationDto) {
         List<Long> compilationEventIds = newCompilationDto.getEvents();
         List<Event> compilationEvents = getCompilationEvents(newCompilationDto, compilationEventIds);
@@ -43,6 +45,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public Compilation updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         Compilation compilation = getCompilationWithEvents(compId);
         updateCompilationIfNeeded(updateRequest, compilation);
@@ -52,6 +55,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void deleteCompilation(Long compId) {
         getCompilation(compId);
         compilationRepository.deleteById(compId);

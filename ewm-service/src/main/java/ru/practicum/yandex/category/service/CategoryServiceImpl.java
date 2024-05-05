@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
 import ru.practicum.yandex.shared.OffsetPageRequest;
@@ -23,6 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final EventRepository eventRepository;
 
     @Override
+    @Transactional
     public Category addCategory(Category category) {
         final Category savedCategory = categoryRepository.save(category);
         log.info("CategoryController, category with id '{}' was saved.", savedCategory.getId());
@@ -30,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public Category updateCategory(Long catId, Category updateCategory) {
         final Category foundCategory = getCategory(catId);
         foundCategory.setName(updateCategory.getName());
@@ -39,18 +42,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void removeCategoryById(Long catId) {
         getCategory(catId);
         checkIfCategoryHaveAnyEvents(catId);
         categoryRepository.deleteById(catId);
         log.info("CategoryController, deleted category with id '" + catId + "'.");
-    }
-
-    private void checkIfCategoryHaveAnyEvents(Long catId) {
-        long eventWithSameCategory = eventRepository.countEventsByCategoryId(catId);
-        if (eventWithSameCategory > 0) {
-            throw new NotAuthorizedException("Category with id '" + catId + "' still have other event attached to it.");
-        }
     }
 
     @Override
@@ -72,5 +69,12 @@ public class CategoryServiceImpl implements CategoryService {
     private Category getCategory(Long catId) {
         return categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id '" + catId + "' not found."));
+    }
+
+    private void checkIfCategoryHaveAnyEvents(Long catId) {
+        long eventWithSameCategory = eventRepository.countEventsByCategoryId(catId);
+        if (eventWithSameCategory > 0) {
+            throw new NotAuthorizedException("Category with id '" + catId + "' still have other event attached to it.");
+        }
     }
 }
