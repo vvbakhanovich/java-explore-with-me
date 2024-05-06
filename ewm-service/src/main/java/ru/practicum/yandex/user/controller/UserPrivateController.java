@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.yandex.events.dto.CommentDto;
+import ru.practicum.yandex.events.dto.CommentRequestDto;
 import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.events.dto.EventShortDto;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
+import ru.practicum.yandex.events.mapper.CommentMapper;
 import ru.practicum.yandex.events.mapper.EventMapper;
+import ru.practicum.yandex.events.model.Comment;
+import ru.practicum.yandex.events.model.CommentRequest;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
@@ -47,6 +53,8 @@ public class UserPrivateController {
     private final EventMapper eventMapper;
 
     private final ParticipationMapper participationMapper;
+
+    private final CommentMapper commentMapper;
 
     /**
      * Add new event. Event date must be at least 2 hours after current time. If event added successfully, returns 201
@@ -191,5 +199,56 @@ public class UserPrivateController {
         log.info("User with id '{}' canceling request with id '{}'.", userId, requestId);
         final ParticipationRequest canceledRequest = userService.cancelOwnParticipationRequest(userId, requestId);
         return participationMapper.toDto(canceledRequest);
+    }
+
+    /**
+     * Add comment to event. If comment added successfully, returns 201 response status.
+     *
+     * @param userId            user adding comment
+     * @param eventId           event to comment
+     * @param commentRequestDto comment parameters
+     * @return added comment
+     */
+    @PostMapping("/{userId}/events/{eventId}/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentDto addCommentToEvent(@PathVariable Long userId,
+                                        @PathVariable Long eventId,
+                                        @RequestBody @Valid CommentRequestDto commentRequestDto) {
+        log.info("User with id '{}' adding comment to event with id '{}'.", userId, eventId);
+        final Comment comment = commentMapper.toModel(commentRequestDto);
+        final Comment addedComment = userService.addCommentToEvent(userId, eventId, comment);
+        return commentMapper.toDto(addedComment);
+    }
+
+    /**
+     * Update comment.
+     *
+     * @param userId            user updating comment
+     * @param commentId         comment id to update
+     * @param commentRequestDto update comment
+     * @return updated comment
+     */
+    @PatchMapping("/{userId}/comments/{commentId}")
+    public CommentDto updateComment(@PathVariable Long userId,
+                                    @PathVariable Long commentId,
+                                    @RequestBody @Valid CommentRequestDto commentRequestDto) {
+        log.info("User with id '{}' updating comment with id '{}'.", userId, commentId);
+        final CommentRequest commentRequest = commentMapper.toRequestModel(commentRequestDto);
+        final Comment addedComment = userService.updateComment(userId, commentId, commentRequest);
+        return commentMapper.toDto(addedComment);
+    }
+
+    /**
+     * Delete comment.
+     *
+     * @param userId    user deleting comment
+     * @param commentId comment id to delete
+     */
+    @DeleteMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable Long userId,
+                              @PathVariable Long commentId) {
+        log.info("User with id '{}' updating comment with id '{}'.", userId, commentId);
+        userService.deleteComment(userId, commentId);
     }
 }
