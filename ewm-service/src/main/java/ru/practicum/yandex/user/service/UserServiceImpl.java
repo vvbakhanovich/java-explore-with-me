@@ -9,8 +9,6 @@ import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.mapper.EventMapper;
-import ru.practicum.yandex.events.model.Comment;
-import ru.practicum.yandex.events.model.CommentRequest;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
@@ -285,73 +283,6 @@ public class UserServiceImpl implements UserService {
         log.info("Participation request with id '{}' was canceled by user with id '{}'.", participationRequest.getId(),
                 userId);
         return participationRequest;
-    }
-
-    /**
-     * Add comment to event.
-     *
-     * @param userId  user id adding comment
-     * @param eventId event id to comment
-     * @param comment comment
-     * @return added comment
-     */
-    @Override
-    public Comment addCommentToEvent(Long userId, Long eventId, Comment comment) {
-        final User user = getUser(userId);
-        final Event event = getEvent(eventId);
-        comment.setAuthor(user);
-        comment.setEvent(event);
-        Comment savedComment = commentRepository.save(comment);
-        event.addCommentToEvent(savedComment);
-        eventRepository.save(event);
-        log.info("User with id '{}' added comment to event with id '{}'.", userId, eventId);
-        return savedComment;
-    }
-
-    /**
-     * Update comment. Only author of comment can update comment.
-     *
-     * @param userId        user updating comment
-     * @param commentId     comment id to update
-     * @param updateComment update comment
-     * @return updated comment
-     */
-    @Override
-    public Comment updateComment(Long userId, Long commentId, CommentRequest updateComment) {
-        getUser(userId);
-        Comment comment = getComment(commentId);
-        checkIfUserIsCommentAuthor(userId, comment);
-        comment.setText(updateComment.getText());
-        Comment updatedComment = commentRepository.save(comment);
-        log.info("Comment with id '" + commentId + "' was updated.");
-        return updatedComment;
-    }
-
-    /**
-     * Delete comment. Only author of comment can delete comment.
-     *
-     * @param userId    user deleting comment
-     * @param commentId comment id to delete
-     */
-    @Override
-    public void deleteComment(Long userId, Long commentId) {
-        getUser(userId);
-        Comment comment = getComment(commentId);
-        checkIfUserIsCommentAuthor(userId, comment);
-        commentRepository.deleteById(commentId);
-        log.info("Comment with id '" + commentId + "' was deleted by user with id '" + userId + "'.");
-    }
-
-    private void checkIfUserIsCommentAuthor(Long userId, Comment comment) {
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new NotAuthorizedException("User with id '" + userId + "' is not author of comment with id '" +
-                    comment.getId() + "'.");
-        }
-    }
-
-    private Comment getComment(Long commentId) {
-        return commentRepository.findCommentById(commentId)
-                .orElseThrow(() -> new NotFoundException("Comment with id '" + commentId + "' not found."));
     }
 
     private int populateStatusUpdateDto(EventRequestStatusUpdateRequest statusUpdate, List<ParticipationRequest> participationRequests, EventRequestStatusUpdateDto eventRequestStatusUpdate, int lastConfirmedRequest, Event event, int participantLimit) {

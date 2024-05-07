@@ -13,16 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.practicum.yandex.category.dto.CategoryDto;
-import ru.practicum.yandex.events.dto.CommentDto;
-import ru.practicum.yandex.events.dto.CommentRequestDto;
 import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.events.dto.EventShortDto;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.dto.LocationDto;
 import ru.practicum.yandex.events.mapper.CommentMapper;
 import ru.practicum.yandex.events.mapper.EventMapper;
-import ru.practicum.yandex.events.model.Comment;
-import ru.practicum.yandex.events.model.CommentRequest;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.shared.exception.EventNotModifiableException;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
@@ -45,7 +41,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -1668,181 +1663,5 @@ class UserEventPublicControllerTest {
 
         verify(userService, times(1)).updateEvent(userId, eventId, updateEvent);
         verify(eventMapper, never()).toDto(any());
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Add comment")
-    void addCommentToEvent_shouldReturn201Status() {
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text("comment")
-                .build();
-        Comment comment = new Comment();
-        CommentDto commentDto = CommentDto.builder()
-                .text("commentDto")
-                .build();
-        when(commentMapper.toModel(commentRequestDto))
-                .thenReturn(comment);
-        when(userService.addCommentToEvent(userId, eventId, comment))
-                .thenReturn(comment);
-        when(commentMapper.toDto(comment))
-                .thenReturn(commentDto);
-
-        mvc.perform(post("/users/{userId}/events/{eventId}/comments", userId, eventId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.text", is(commentDto.getText())));
-
-        verify(commentMapper, times(1)).toModel(commentRequestDto);
-        verify(userService, times(1)).addCommentToEvent(userId, eventId, comment);
-        verify(commentMapper, times(1)).toDto(comment);
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Add empty comment")
-    void addCommentToEvent_whenEmptyComment_shouldReturn400Status() {
-        String text = "";
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text(text)
-                .build();
-
-
-        mvc.perform(post("/users/{userId}/events/{eventId}/comments", userId, eventId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
-                .andExpect(jsonPath("$.message", is("Field: text. " +
-                        "Error = Text must not be blank or empty and must have between 1 and 2000 characters. " +
-                        "Value: " + text)))
-                .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
-                .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
-
-        verify(commentMapper, never()).toModel(any());
-        verify(userService, never()).addCommentToEvent(any(), any(), any());
-        verify(commentMapper, never()).toDto(any());
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Add comment with too long text")
-    void addCommentToEvent_whenTooLongComment_shouldReturn400Status() {
-        String text = "a".repeat(2001);
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text(text)
-                .build();
-
-
-        mvc.perform(post("/users/{userId}/events/{eventId}/comments", userId, eventId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
-                .andExpect(jsonPath("$.message", is("Field: text. " +
-                        "Error = Text must not be blank or empty and must have between 1 and 2000 characters. " +
-                        "Value: " + text)))
-                .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
-                .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
-
-        verify(commentMapper, never()).toModel(any());
-        verify(userService, never()).addCommentToEvent(any(), any(), any());
-        verify(commentMapper, never()).toDto(any());
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Update comment")
-    void updateComment_shouldReturn200Status() {
-        Long commentId = 3L;
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text("comment")
-                .build();
-        CommentRequest commentRequest = new CommentRequest();
-        Comment comment = new Comment();
-        CommentDto commentDto = CommentDto.builder()
-                .text("commentDto")
-                .build();
-        when(commentMapper.toRequestModel(commentRequestDto))
-                .thenReturn(commentRequest);
-        when(userService.updateComment(userId, commentId, commentRequest))
-                .thenReturn(comment);
-        when(commentMapper.toDto(comment))
-                .thenReturn(commentDto);
-
-        mvc.perform(patch("/users/{userId}/comments/{commentId}", userId, commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.text", is(commentDto.getText())));
-
-        verify(commentMapper, times(1)).toRequestModel(commentRequestDto);
-        verify(userService, times(1)).updateComment(userId, commentId, commentRequest);
-        verify(commentMapper, times(1)).toDto(comment);
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Update empty comment")
-    void updateComment_whenEmptyComment_shouldReturn400Status() {
-        Long commentId = 3L;
-        String text = "";
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text(text)
-                .build();
-
-        mvc.perform(patch("/users/{userId}/comments/{commentId}", userId, commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
-                .andExpect(jsonPath("$.message", is("Field: text. " +
-                        "Error = Text must not be blank or empty and must have between 1 and 2000 characters. " +
-                        "Value: " + text)))
-                .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
-                .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
-
-        verify(commentMapper, never()).toModel(any());
-        verify(userService, never()).updateComment(any(), any(), any());
-        verify(commentMapper, never()).toDto(any());
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Update comment with too long text")
-    void updateComment_whenTooLongComment_shouldReturn400Status() {
-        Long commentId = 3L;
-        String text = "a".repeat(2001);
-        CommentRequestDto commentRequestDto = CommentRequestDto.builder()
-                .text(text)
-                .build();
-
-        mvc.perform(patch("/users/{userId}/comments/{commentId}", userId, commentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentRequestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
-                .andExpect(jsonPath("$.message", is("Field: text. " +
-                        "Error = Text must not be blank or empty and must have between 1 and 2000 characters. " +
-                        "Value: " + text)))
-                .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
-                .andExpect(jsonPath("$.reason", is("Incorrectly made request.")));
-
-        verify(commentMapper, never()).toModel(any());
-        verify(userService, never()).updateComment(any(), any(), any());
-        verify(commentMapper, never()).toDto(any());
-    }
-
-    @Test
-    @SneakyThrows
-    @DisplayName("Delete comment")
-    void deleteComment_shouldReturn204Status() {
-        Long commentId = 3L;
-
-        mvc.perform(delete("/users/{userId}/comments/{commentId}", userId, commentId))
-                .andExpect(status().isNoContent());
-
-        verify(userService, times(1)).deleteComment(userId, commentId);
     }
 }

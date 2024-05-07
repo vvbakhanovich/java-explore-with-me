@@ -1,8 +1,6 @@
 package ru.practicum.yandex.user.service;
 
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
-import ru.practicum.yandex.events.model.Comment;
-import ru.practicum.yandex.events.model.CommentRequest;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateDto;
 import ru.practicum.yandex.user.dto.EventRequestStatusUpdateRequest;
@@ -36,10 +34,4 @@ public interface UserService {
     List<ParticipationRequest> findParticipationRequestsForUsersEvent(Long userId, Long eventId);
 
     EventRequestStatusUpdateDto changeParticipationRequestStatusForUsersEvent(Long userId, Long eventId, EventRequestStatusUpdateRequest statusUpdate);
-
-    Comment addCommentToEvent(Long userId, Long eventId, Comment commentRequest);
-
-    Comment updateComment(Long userId, Long commentId, CommentRequest commentRequest);
-
-    void deleteComment(Long userId, Long commentId);
 }

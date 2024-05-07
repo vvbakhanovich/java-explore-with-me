@@ -11,8 +11,6 @@ import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.dto.LocationDto;
-import ru.practicum.yandex.events.model.Comment;
-import ru.practicum.yandex.events.model.CommentRequest;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
@@ -26,7 +24,6 @@ import ru.practicum.yandex.user.model.User;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -34,7 +31,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -395,117 +391,6 @@ class UserEventServiceImplTest {
         assertThat(updatedEvent.getLocation().getLon(), is(updateRequest.getLocation().getLon()));
         assertThat(updatedEvent.getCreatedOn(), lessThanOrEqualTo(LocalDateTime.now()));
         assertThat(updatedEvent.getInitiator().getId(), is(savedUser1.getId()));
-    }
-
-    @Test
-    @DisplayName("Add comment")
-    void addCommentToEvent_shouldReturnCommentWithNotNullId() {
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-        Comment addedComment = userService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
-
-        assertThat(addedComment, notNullValue());
-        assertThat(addedComment.getId(), greaterThan(0L));
-        assertThat(addedComment.getAuthor().getId(), is(savedUser1.getId()));
-        assertThat(addedComment.getPostedOn(), lessThanOrEqualTo(LocalDateTime.now()));
-
-        Event event = userService.getFullEventByInitiator(savedUser1.getId(), savedEvent1.getId());
-
-        assertThat(event.getComments(), notNullValue());
-        assertThat(event.getComments().size(), is(1));
-        assertThat(event.getComments().get(0).getId(), is(addedComment.getId()));
-    }
-
-    @Test
-    @DisplayName("Add comment to event by not existing user")
-    void addCommentToEvent_whenUserNotFound_shouldThrowNotFoundException() {
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-
-        NotFoundException e = assertThrows(NotFoundException.class, () -> userService
-                .addCommentToEvent(unknownId, savedEvent1.getId(), comment));
-
-        assertThat(e.getMessage(), is("User with id '" + unknownId + "' not found."));
-    }
-
-    @Test
-    @DisplayName("Update comment")
-    void updateComment_shouldReturnCommentWithUpdatedText() {
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-        Comment addedComment = userService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
-
-        CommentRequest updateComment = CommentRequest.builder()
-                .text("updated comment")
-                .build();
-        Comment updatedComment = userService.updateComment(savedUser1.getId(), addedComment.getId(), updateComment);
-
-        assertThat(updatedComment, notNullValue());
-        assertThat(updatedComment.getId(), is(addedComment.getId()));
-        assertThat(updatedComment.getText(), is(updateComment.getText()));
-    }
-
-    @Test
-    @DisplayName("Update comment by not author")
-    void updateComment_whenNotAuthorTryToUpdate_shouldThrowNotAuthorizedException() {
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        Comment addedComment = userService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
-        CommentRequest updateComment = CommentRequest.builder()
-                .text("updated comment")
-                .build();
-
-        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> userService
-                .updateComment(savedUser2.getId(), addedComment.getId(), updateComment));
-
-        assertThat(e.getMessage(), is("User with id '" + savedUser2.getId() + "' is not author of comment with id '" +
-                addedComment.getId() + "'."));
-    }
-
-    @Test
-    @DisplayName("Delete comment")
-    void deleteComment_shouldRemoveCommentFromDb() {
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-        Comment addedComment = userService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
-
-        userService.deleteComment(savedUser1.getId(), addedComment.getId());
-
-        Optional<Comment> optionalComment = commentRepository.findById(addedComment.getId());
-
-        assertTrue(optionalComment.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Delete comment by not author")
-    void deleteComment_whenNotAuthorTryToDelete_shouldThrowNotAuthorizedException() {
-        NewEvent newEvent1 = createNewEvent(1);
-        Event savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
-        Comment comment = Comment.builder()
-                .text("comment")
-                .build();
-        Comment addedComment = userService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
-
-        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> userService
-                .deleteComment(savedUser2.getId(), addedComment.getId()));
-
-        assertThat(e.getMessage(), is("User with id '" + savedUser2.getId() + "' is not author of comment with id '" +
-                addedComment.getId() + "'."));
     }
 
     private User createUser(int id) {
