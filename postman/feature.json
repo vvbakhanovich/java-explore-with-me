@@ -98,12 +98,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "0559c60b-09b6-4aa7-b073-0bea9ded7d02"
+								"uuid": "79f1ba47-3fbb-4611-93fe-48aba2dc64d2"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "ab734818-0234-4ab1-8048-791f1a737de9"
+								"uuid": "7a3dbd4f-3ae3-4648-a064-b39b0920437e"
 							}
 						],
 						"body": {
@@ -130,12 +130,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "a0358390-b937-489d-8edf-962ad8164209"
+									"uuid": "6cb1bbc2-31df-4c53-8921-47ce882223bf"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "c5d33809-cb8d-4b30-9118-6bbdc478d43b"
+									"uuid": "6be3b51f-422e-43f5-be18-76015cbbf9ca"
 								}
 							]
 						}
@@ -208,12 +208,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "78f44b47-398b-4c2b-b9d4-f6bcaa7ae52c"
+								"uuid": "e3cb1354-2f34-4740-b7af-bd8c23b5da8e"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "15c568cc-547c-4ce6-8819-25aeba11c17a"
+								"uuid": "57239514-dc77-4c45-a44c-bf20f80b4a66"
 							}
 						],
 						"body": {
@@ -240,12 +240,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "b05d0fb6-ea92-442c-9f8c-8842b3c53987"
+									"uuid": "beb0ab59-bd4b-4545-8ff9-dc7cce8e86b1"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "93bf657b-852a-4722-9433-d38a58abd300"
+									"uuid": "91a758d9-0f78-42d4-9baf-14c35d7076da"
 								}
 							]
 						}
@@ -344,12 +344,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "66e891ee-1353-4845-9983-de804413cd0b"
+								"uuid": "e0909532-fd6f-4fa0-a14d-f103ba934450"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "984ad1e7-3468-4825-b4ee-e1edfdee32db"
+								"uuid": "66af7104-b955-4ea1-bac4-805328a71f76"
 							}
 						],
 						"body": {
@@ -376,12 +376,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "d48acf5b-e550-4de9-b045-924f52fe9ec6"
+									"uuid": "cc5e4a0d-150f-4a03-83fd-bf56d5bd2b76"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "4d59094b-cb0e-4c19-ab56-4ca99261b031"
+									"uuid": "55dbb7ff-8ad8-44c1-9f26-3c2feea1800c"
 								}
 							]
 						}
@@ -456,12 +456,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "6ffc3192-9b38-4edc-b154-487de62b4534"
+								"uuid": "7d2cb210-aeeb-44bd-bb77-d8b75c7a746a"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "ddd35583-47c0-4111-96f1-2deec74470b3"
+								"uuid": "11223d75-8146-4779-88f4-79e9620563c1"
 							}
 						],
 						"body": {
@@ -488,12 +488,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "28e86b5b-86c7-4f95-85c5-35ef260e60d5"
+									"uuid": "03da6d15-c656-4dc5-97ed-ef900f98b17b"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "295f0d7c-8b76-4018-920b-ca40e2c018b8"
+									"uuid": "ffc2bba3-89c9-4565-91f3-fb050b31720d"
 								}
 							]
 						}
@@ -554,12 +554,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "6eb518cd-e654-43fe-855f-1fec6deb58fd"
+								"uuid": "37d24401-b3cd-4baf-8c88-f9e71e7dab4e"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "8cfbc687-5a43-44ef-8739-75010798507b"
+								"uuid": "cd7bf1fc-44a3-483f-9691-468054232962"
 							}
 						],
 						"body": {
@@ -586,12 +586,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "b9a367a0-1ed7-422d-bf2a-70e447d2f1c7"
+									"uuid": "71852a74-171d-4c34-a07b-e28b494ed9a5"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "d98508f5-34e6-40e0-b913-01c4143a05f2"
+									"uuid": "2a7c0096-f944-46ec-a7da-aee2a2bbda02"
 								}
 							]
 						}
@@ -652,12 +652,12 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"uuid": "0f5fc1ba-136d-4f19-8242-55c41fff1d0c"
+								"uuid": "97d02466-d3fb-4f0d-b2db-39ea341cb7db"
 							},
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"uuid": "7f0db4fe-2ac3-4d17-81c3-51f8025b230e"
+								"uuid": "80d11d32-dae4-495a-a917-769bf4fe1abe"
 							}
 						],
 						"body": {
@@ -684,12 +684,12 @@
 								{
 									"key": "eventId",
 									"value": "{{eid}}",
-									"uuid": "44b5483f-0150-4193-8ecd-80299b638891"
+									"uuid": "63b43999-0b56-4e96-a305-c32332c95668"
 								},
 								{
 									"key": "userId",
 									"value": "{{uid}}",
-									"uuid": "5699991a-0007-4c22-aca7-c4ecbd45f0fc"
+									"uuid": "e01d0818-83ae-4a86-af1c-032811958bf6"
 								}
 							]
 						}
@@ -800,12 +800,12 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"uuid": "d8f843cc-b16d-4e2b-baff-9ea3f1a1416d"
+						"uuid": "9d7f5068-448b-4098-9118-38616ff7b505"
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "29b007ff-7454-4cb3-9231-ac44ef163249"
+						"uuid": "c88f86f4-f447-4307-bbb3-f32c6af6bcf2"
 					}
 				],
 				"body": {
@@ -832,12 +832,12 @@
 						{
 							"key": "eventId",
 							"value": "{{eid}}",
-							"uuid": "fda63385-400e-426c-b695-6882a0de1ab7"
+							"uuid": "c8d8e70a-6fcc-4953-9778-d72f43cad3f6"
 						},
 						{
 							"key": "userId",
 							"value": "{{uid}}",
-							"uuid": "3147f6df-39d5-45b4-babd-17e80d00b04d"
+							"uuid": "b414b578-dc2a-4508-a3a7-6067ae412511"
 						}
 					]
 				}
@@ -935,12 +935,12 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"uuid": "ef6f36bb-6407-4110-9a99-44301adf7c27"
+						"uuid": "8557967d-83d7-43db-9ad7-407a1fdd6ea8"
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "dbcd779e-8687-4cd4-8e51-edda7417b598"
+						"uuid": "8b35909d-5d57-4e97-bdeb-0a7618ad4e0b"
 					}
 				],
 				"body": {
@@ -967,12 +967,12 @@
 						{
 							"key": "eventId",
 							"value": "{{eid}}",
-							"uuid": "79c60c7a-997c-45ae-86c1-e43f4b713868"
+							"uuid": "01074a07-dc9a-4c45-975f-995bfcc7fd42"
 						},
 						{
 							"key": "userId",
 							"value": "{{uid}}",
-							"uuid": "94d3c9b7-d3ab-4b0f-8c06-69c61ba730ef"
+							"uuid": "0f493e95-8d27-40c8-b334-8ce0f32b50fa"
 						}
 					]
 				}
@@ -1040,12 +1040,12 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"uuid": "b9bec1f2-59c0-4638-8b85-5af5c2f24b1b"
+						"uuid": "4242e63d-0684-47d1-95eb-a6f3a9328c4d"
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "13d4974d-3b96-4c63-9011-7e3631b8e654"
+						"uuid": "9399d782-4d27-4a35-a5b8-cac152ee550b"
 					}
 				],
 				"body": {
@@ -1072,12 +1072,12 @@
 						{
 							"key": "eventId",
 							"value": "{{eid}}",
-							"uuid": "7bccf13a-63c4-4521-9b21-1684b89ad300"
+							"uuid": "11331898-a2ac-4767-b5c2-b1babfe8c31e"
 						},
 						{
 							"key": "userId",
 							"value": "{{notAuthorId}}",
-							"uuid": "c29ebf13-987b-4223-b172-45dcba26d443"
+							"uuid": "c4cb18b7-222d-4084-b16f-ce7b984cc221"
 						}
 					]
 				}
@@ -1138,12 +1138,12 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"uuid": "4ed19fbc-b473-4ca6-a83f-f3b4a56de377"
+						"uuid": "099677ac-1ac7-4881-8fc8-76ffcdce8801"
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "99508973-cfa2-42ff-8a2e-c2d9fc113d20"
+						"uuid": "89cfad20-c2b6-4d68-87ac-fe016fe0fb65"
 					}
 				],
 				"url": {
@@ -1161,12 +1161,12 @@
 						{
 							"key": "userId",
 							"value": "{{notAuthorId}}",
-							"uuid": "87084b37-ae56-4cfc-bb5d-8dadc9ff7108"
+							"uuid": "2ac4d129-08fe-48ce-a09b-7ecd37ead58e"
 						},
 						{
 							"key": "commentId",
 							"value": "{{commentId}}",
-							"uuid": "ecb8fe1b-2bca-465b-8c35-637e5d5f9b4b"
+							"uuid": "36770950-4ea2-4609-aef2-79427c85bffe"
 						}
 					]
 				}
@@ -1225,12 +1225,12 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"uuid": "155f2386-f0ce-4ee1-b6a2-35e121f2aaa7"
+						"uuid": "4e741e2a-157b-4e54-989f-53b43b028e3d"
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "1911f8ea-297e-45f2-a7d3-31f951403a9b"
+						"uuid": "e030c8c8-575d-4ea6-93ed-db9b906743bf"
 					}
 				],
 				"url": {
@@ -1248,12 +1248,12 @@
 						{
 							"key": "userId",
 							"value": "{{uid}}",
-							"uuid": "83bd6403-4667-4bc1-ac8d-9fe53c809b8f"
+							"uuid": "bc3ad6e3-2491-4448-8978-4abfc0064ed4"
 						},
 						{
 							"key": "commentId",
 							"value": "{{commentId}}",
-							"uuid": "58f16fa4-a9f5-4362-a77c-0894b9b06fc1"
+							"uuid": "a6bb249b-98a3-4677-b53e-7040a4497307"
 						}
 					]
 				}
@@ -1330,8 +1330,8 @@
 							"pm.expect(target).to.have.property('confirmedRequests');\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Первым событием в спсике должно быть событие с комментарием\", function() {\r",
-							"pm.expect(target).to.have.property(\"id\").equal(pm.collectionVariables.get('eventIdWithComment'))\r",
+							"pm.test(\"Количество комментариев первым под событием должно быть больше нуля\", function() {\r",
+							"pm.expect(target.comments.length).to.greaterThan(0);\r",
 							"});"
 						],
 						"type": "text/javascript",
@@ -1345,7 +1345,7 @@
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"uuid": "0c28635b-c5c1-456e-97a1-565d61ed60ff"
+						"uuid": "248b6e87-9825-4418-9e22-6f4dd68624f5"
 					}
 				],
 				"url": {
