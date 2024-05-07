@@ -87,4 +87,28 @@ public class EventSpecification {
             return spec.toPredicate(root, query, criteriaBuilder);
         };
     }
+
+    public static Specification<Event> orderById(Specification<Event> spec) {
+        return (root, query, criteriaBuilder) -> {
+            query.orderBy(
+                    criteriaBuilder.asc(root.get("id")));
+            return spec.toPredicate(root, query, criteriaBuilder);
+        };
+    }
+
+    public static Specification<Event> orderByViews(Specification<Event> spec) {
+        return (root, query, criteriaBuilder) -> {
+            query.orderBy(
+                    criteriaBuilder.desc(root.get("views")));
+            return spec.toPredicate(root, query, criteriaBuilder);
+        };
+    }
+
+    public static Specification<Event> orderByEventDate(Specification<Event> spec) {
+        return (root, query, criteriaBuilder) -> {
+            query.orderBy(
+                    criteriaBuilder.desc(root.get("eventDate")));
+            return spec.toPredicate(root, query, criteriaBuilder);
+        };
+    }
 }

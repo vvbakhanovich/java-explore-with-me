@@ -742,4 +742,29 @@ class EventServiceImplTest {
         assertThat(e.getMessage(), is("User with id '" + savedUser2.getId() + "' is not author of comment with id '" +
                 addedComment.getId() + "'."));
     }
+
+    @Test
+    @DisplayName("Find events order by most commented")
+    void findEvent_whenOrderByMostComments_shouldReturnCommentedEventFirst() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        searchFilter = EventSearchFilter.builder()
+                .text("NNOTaT")
+                .sort(EventSort.MOST_COMMENTS)
+                .build();
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        eventService.addCommentToEvent(savedUser1.getId(), savedEvent2.getId(), comment);
+
+        List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).getId(), is(savedEvent2.getId()));
+        assertThat(events.get(1).getId(), is(savedEvent1.getId()));
+    }
 }
