@@ -2,7 +2,6 @@ package ru.practicum.yandex.events.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.repository.CommentRepository;
 import ru.practicum.yandex.events.repository.EventRepository;
+import ru.practicum.yandex.events.repository.EventSpecification;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
@@ -63,10 +63,10 @@ public class EventServiceImpl implements EventService {
      */
     @Override
     public List<Event> findEvents(EventSearchFilter searchFilter, Long from, Integer size) {
-        Sort sort = getSort(searchFilter.getSort());
-        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size, sort);
+        OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
         List<Specification<Event>> specifications = eventSearchFilterToSpecifications(searchFilter);
-        List<Event> events = eventRepository.findAll(specifications.stream().reduce(Specification::and).orElse(null),
+        Specification<Event> resultSpec = specifications.stream().reduce(Specification::and).orElse(null);
+        List<Event> events = eventRepository.findAll(getSort(searchFilter.getSort(), resultSpec),
                 pageRequest).getContent();
         log.info("Requesting events with filter '{}'. List size '{}.", searchFilter, events.size());
         return events;
@@ -236,23 +236,20 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found."));
     }
 
-    private Sort getSort(EventSort eventSort) {
-        Sort sort = Sort.unsorted();
+    private Specification<Event> getSort(EventSort eventSort, Specification<Event> spec) {
         if (eventSort == null) {
-            return sort;
+            return EventSpecification.orderById(spec);
         }
-
         switch (eventSort) {
             case VIEWS:
-                sort = Sort.by(Sort.Direction.DESC, "views");
-                break;
+                return EventSpecification.orderByViews(spec);
             case EVENT_DATE:
-                sort = Sort.by(Sort.Direction.DESC, "eventDate");
-                break;
+                return EventSpecification.orderByEventDate(spec);
+            case MOST_COMMENTS:
+                return EventSpecification.orderByNumberOfComments(spec);
             default:
                 throw new IllegalArgumentException("Sort '" + eventSort + "is not supported yet.");
         }
-        return sort;
     }
 
     private List<Specification<Event>> eventSearchFilterToSpecifications(EventSearchFilter searchFilter) {
