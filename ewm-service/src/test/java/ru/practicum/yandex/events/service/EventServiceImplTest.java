@@ -14,9 +14,12 @@ import ru.practicum.yandex.events.dto.EventAdminSearchFilter;
 import ru.practicum.yandex.events.dto.EventSearchFilter;
 import ru.practicum.yandex.events.dto.EventSort;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
+import ru.practicum.yandex.events.model.Comment;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
+import ru.practicum.yandex.events.repository.CommentRepository;
+import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
 import ru.practicum.yandex.user.model.NewEvent;
@@ -25,12 +28,14 @@ import ru.practicum.yandex.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
@@ -46,6 +51,9 @@ class EventServiceImplTest {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     private Event savedEvent1;
 
     private Event savedEvent2;
@@ -59,6 +67,8 @@ class EventServiceImplTest {
     private Category savedCategory1;
 
     private Category savedCategory2;
+
+    Long unknownId;
 
     @BeforeEach
     void init() {
@@ -108,6 +118,7 @@ class EventServiceImplTest {
                 .build();
         savedEvent1 = userService.addEventByUser(savedUser1.getId(), newEvent1);
         savedEvent2 = userService.addEventByUser(savedUser1.getId(), newEvent2);
+        unknownId = 999L;
     }
 
     @Test
@@ -628,5 +639,132 @@ class EventServiceImplTest {
         assertThat(updatedEvent.getDescription(), is(savedEvent1.getDescription()));
         assertThat(updatedEvent.getAnnotation(), is(savedEvent1.getAnnotation()));
         assertThat(updatedEvent.isRequestModeration(), is(savedEvent1.isRequestModeration()));
+    }
+
+    @Test
+    @DisplayName("Add comment")
+    void addCommentToEvent_shouldReturnCommentWithNotNullId() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        eventService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
+
+        Event event = userService.getFullEventByInitiator(savedUser1.getId(), savedEvent1.getId());
+        assertThat(event.getComments(), notNullValue());
+        assertThat(event.getComments().size(), is(1));
+        assertThat(event.getComments().get(0).getText(), is(comment.getText()));
+    }
+
+    @Test
+    @DisplayName("Add comment to event by not existing user")
+    void addCommentToEvent_whenUserNotFound_shouldThrowNotFoundException() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+
+        NotFoundException e = assertThrows(NotFoundException.class, () -> eventService
+                .addCommentToEvent(unknownId, savedEvent1.getId(), comment));
+
+        assertThat(e.getMessage(), is("User with id '" + unknownId + "' not found."));
+    }
+
+    @Test
+    @DisplayName("Update comment")
+    void updateComment_shouldReturnCommentWithUpdatedText() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+
+        Event commentedEvent = eventService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
+        Comment addedComment = commentedEvent.getComments().get(0);
+
+        Comment updateComment = Comment.builder()
+                .id(addedComment.getId())
+                .text("updated comment")
+                .build();
+        Event eventWithUpdatedComment = eventService.updateComment(savedUser1.getId(), savedEvent1.getId(), updateComment);
+
+        assertThat(eventWithUpdatedComment, notNullValue());
+        assertThat(eventWithUpdatedComment.getComments(), notNullValue());
+        assertThat(eventWithUpdatedComment.getComments().size(), is(1));
+        assertThat(eventWithUpdatedComment.getComments().get(0).getId(), is(addedComment.getId()));
+        assertThat(eventWithUpdatedComment.getComments().get(0).getText(), is(updateComment.getText()));
+    }
+
+    @Test
+    @DisplayName("Update comment by not author")
+    void updateComment_whenNotAuthorTryToUpdate_shouldThrowNotAuthorizedException() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        Event commentedEvent = eventService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
+        Comment addedComment = commentedEvent.getComments().get(0);
+        Comment updateComment = Comment.builder()
+                .id(addedComment.getId())
+                .text("updated comment")
+                .build();
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> eventService
+                .updateComment(savedUser2.getId(), addedComment.getId(), updateComment));
+
+        assertThat(e.getMessage(), is("User with id '" + savedUser2.getId() + "' is not author of comment with id '" +
+                addedComment.getId() + "'."));
+    }
+
+    @Test
+    @DisplayName("Delete comment")
+    void deleteComment_shouldRemoveCommentFromDb() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        Event commentedEvent = eventService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
+        Comment addedComment = commentedEvent.getComments().get(0);
+
+        eventService.deleteComment(savedUser1.getId(), addedComment.getId());
+
+        Optional<Comment> optionalComment = commentRepository.findById(addedComment.getId());
+
+        assertTrue(optionalComment.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Delete comment by not author")
+    void deleteComment_whenNotAuthorTryToDelete_shouldThrowNotAuthorizedException() {
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        Event commentedEvent = eventService.addCommentToEvent(savedUser1.getId(), savedEvent1.getId(), comment);
+        Comment addedComment = commentedEvent.getComments().get(0);
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> eventService
+                .deleteComment(savedUser2.getId(), addedComment.getId()));
+
+        assertThat(e.getMessage(), is("User with id '" + savedUser2.getId() + "' is not author of comment with id '" +
+                addedComment.getId() + "'."));
+    }
+
+    @Test
+    @DisplayName("Find events order by most commented")
+    void findEvent_whenOrderByMostComments_shouldReturnCommentedEventFirst() {
+        EventUpdateRequest updateRequest = EventUpdateRequest.builder()
+                .stateAction(StateAction.PUBLISH_EVENT)
+                .build();
+        eventService.updateEventByAdmin(savedEvent1.getId(), updateRequest);
+        eventService.updateEventByAdmin(savedEvent2.getId(), updateRequest);
+        searchFilter = EventSearchFilter.builder()
+                .text("NNOTaT")
+                .sort(EventSort.MOST_COMMENTS)
+                .build();
+        Comment comment = Comment.builder()
+                .text("comment")
+                .build();
+        eventService.addCommentToEvent(savedUser1.getId(), savedEvent2.getId(), comment);
+
+        List<Event> events = eventService.findEvents(searchFilter, 0L, 10);
+
+        assertThat(events, notNullValue());
+        assertThat(events.size(), is(2));
+        assertThat(events.get(0).getId(), is(savedEvent2.getId()));
+        assertThat(events.get(1).getId(), is(savedEvent1.getId()));
     }
 }

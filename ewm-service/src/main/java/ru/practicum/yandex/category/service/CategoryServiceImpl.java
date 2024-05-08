@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.category.model.Category;
 import ru.practicum.yandex.category.repository.CategoryRepository;
+import ru.practicum.yandex.events.repository.EventRepository;
 import ru.practicum.yandex.shared.OffsetPageRequest;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
-import ru.practicum.yandex.events.repository.EventRepository;
 
 import java.util.List;
 
@@ -23,6 +23,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final EventRepository eventRepository;
 
+    /**
+     * Add new category. Category name must be unique.
+     *
+     * @param category new category parameters
+     * @return added category
+     */
     @Override
     @Transactional
     public Category addCategory(Category category) {
@@ -31,6 +37,13 @@ public class CategoryServiceImpl implements CategoryService {
         return savedCategory;
     }
 
+    /**
+     * Update category. Category name must be unique. If category with catId not found, throws NotFoundException.
+     *
+     * @param catId          category id to update
+     * @param updateCategory category parameters to update
+     * @return updated category
+     */
     @Override
     @Transactional
     public Category updateCategory(Long catId, Category updateCategory) {
@@ -41,6 +54,11 @@ public class CategoryServiceImpl implements CategoryService {
         return updatedCategory;
     }
 
+    /**
+     * Delete category by category id. Category can not be linked to any events, otherwise throws NotAuthorizedException.
+     *
+     * @param catId category id to delete
+     */
     @Override
     @Transactional
     public void removeCategoryById(Long catId) {
@@ -50,6 +68,13 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("CategoryController, deleted category with id '" + catId + "'.");
     }
 
+    /**
+     * Find categories by page. If nothing was found, returns empty list.
+     *
+     * @param from first element to display
+     * @param size number of elements to display
+     * @return found categories
+     */
     @Override
     public List<Category> findCategories(Long from, Integer size) {
         OffsetPageRequest pageRequest = OffsetPageRequest.of(from, size);
@@ -59,6 +84,12 @@ public class CategoryServiceImpl implements CategoryService {
         return categories.getContent();
     }
 
+    /**
+     * Find category by category id. If nothing was found, throws NotFoundException.
+     *
+     * @param catId category id to find
+     * @return found category
+     */
     @Override
     public Category findCategoryById(Long catId) {
         Category category = getCategory(catId);

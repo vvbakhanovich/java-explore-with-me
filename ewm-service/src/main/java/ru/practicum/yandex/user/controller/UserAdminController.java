@@ -22,6 +22,9 @@ import ru.practicum.yandex.user.service.UserService;
 import javax.validation.Valid;
 import java.util.List;
 
+/**
+ * Admin API for users
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
@@ -33,6 +36,12 @@ public class UserAdminController {
 
     private final UserMapper userMapper;
 
+    /**
+     * Add new user. If added successfully, returns 201 response status.
+     *
+     * @param userShortDto new user parameters
+     * @return added user
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid NewUserRequest userShortDto) {
@@ -42,6 +51,14 @@ public class UserAdminController {
         return userMapper.toDto(savedUser);
     }
 
+    /**
+     * Get information about users. If nothing found, returns empty list.
+     *
+     * @param ids  users ids to search in
+     * @param from first element to display
+     * @param size number of elements to display
+     * @return found users
+     */
     @GetMapping
     public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                   @RequestParam(defaultValue = "0") Long from,
@@ -51,6 +68,11 @@ public class UserAdminController {
         return userMapper.toDtoList(users);
     }
 
+    /**
+     * Delete user by user id. If deleted successfully, returns 204 response status.
+     *
+     * @param userId user id to delete
+     */
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {

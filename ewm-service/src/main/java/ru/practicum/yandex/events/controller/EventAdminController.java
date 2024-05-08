@@ -19,6 +19,9 @@ import ru.practicum.yandex.events.model.Event;
 import javax.validation.Valid;
 import java.util.List;
 
+/**
+ * Admin API for events
+ */
 @RestController
 @RequestMapping("/admin/events")
 @RequiredArgsConstructor
@@ -29,6 +32,14 @@ public class EventAdminController {
 
     private final EventMapper eventMapper;
 
+    /**
+     * Find full events info according to search filter. If nothing was found, returns empty list.
+     *
+     * @param searchFilter search filter
+     * @param from         first element to display
+     * @param size         number of elements to display
+     * @return found events
+     */
     @GetMapping
     public List<EventFullDto> getFullEventsInfoByAdmin(EventAdminSearchFilter searchFilter,
                                                        @RequestParam(defaultValue = "0") Long from,
@@ -38,6 +49,13 @@ public class EventAdminController {
         return eventMapper.toDtoList(events);
     }
 
+    /**
+     * Modify event parameters and status. Event date must by at least 2 hours after current time.
+     *
+     * @param eventId       event id to modify
+     * @param updateRequest event parameters to update
+     * @return updated event
+     */
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventByAdmin(@PathVariable Long eventId,
                                            @RequestBody @Valid EventUpdateRequest updateRequest) {

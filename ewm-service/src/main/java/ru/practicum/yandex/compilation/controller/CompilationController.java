@@ -14,6 +14,9 @@ import ru.practicum.yandex.compilation.service.CompilationService;
 
 import java.util.List;
 
+/**
+ * Public API for compilations
+ */
 @RestController
 @RequestMapping("/compilations")
 @RequiredArgsConstructor
@@ -24,6 +27,14 @@ public class CompilationController {
 
     private final CompilationMapper compilationMapper;
 
+    /**
+     * Find event compilations. If nothing was found according to search filter, returns empty list.
+     *
+     * @param pinned search only pinned event compilations
+     * @param from   first event compilation to display (not required, default value 0)
+     * @param size   number of event compilations to display (not required, default value 10)
+     * @return lists of event compilations
+     */
     @GetMapping
     public List<CompilationDto> findCompilations(@RequestParam(required = false) Boolean pinned,
                                                  @RequestParam(defaultValue = "0") Long from,
@@ -33,6 +44,12 @@ public class CompilationController {
         return compilationMapper.toDtoList(compilations);
     }
 
+    /**
+     * Find event compilation by id. If nothing found, return 404 response status.
+     *
+     * @param compId event compilation id.
+     * @return found event compilation
+     */
     @GetMapping("/{compId}")
     public CompilationDto findCompilationById(@PathVariable Long compId) {
         log.info("Requesting compilation with id '{}'.", compId);

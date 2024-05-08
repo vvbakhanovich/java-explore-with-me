@@ -17,6 +17,7 @@ import ru.practicum.yandex.events.dto.EventFullDto;
 import ru.practicum.yandex.events.dto.EventShortDto;
 import ru.practicum.yandex.events.dto.EventUpdateRequest;
 import ru.practicum.yandex.events.dto.LocationDto;
+import ru.practicum.yandex.events.mapper.CommentMapper;
 import ru.practicum.yandex.events.mapper.EventMapper;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.shared.exception.EventNotModifiableException;
@@ -46,8 +47,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
-class UserEventControllerTest {
+@WebMvcTest(controllers = UserPrivateController.class)
+class UserEventPublicControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -63,6 +64,9 @@ class UserEventControllerTest {
 
     @MockBean
     private ParticipationMapper participationMapper;
+
+    @MockBean
+    private CommentMapper commentMapper;
 
     private NewEventDto newEventDto;
 

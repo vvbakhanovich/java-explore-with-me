@@ -14,6 +14,7 @@ import ru.practicum.yandex.events.dto.LocationDto;
 import ru.practicum.yandex.events.model.Event;
 import ru.practicum.yandex.events.model.EventState;
 import ru.practicum.yandex.events.model.Location;
+import ru.practicum.yandex.events.repository.CommentRepository;
 import ru.practicum.yandex.shared.exception.NotAuthorizedException;
 import ru.practicum.yandex.shared.exception.NotFoundException;
 import ru.practicum.yandex.user.dto.StateAction;
@@ -41,6 +42,9 @@ class UserEventServiceImplTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     private User savedUser1;
 
