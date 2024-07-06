@@ -3,6 +3,7 @@ package ru.practicum.yandex.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.yandex.category.model.Category;
@@ -26,6 +27,7 @@ import ru.practicum.yandex.user.mapper.ParticipationMapper;
 import ru.practicum.yandex.user.model.NewEvent;
 import ru.practicum.yandex.user.model.ParticipationRequest;
 import ru.practicum.yandex.user.model.User;
+import ru.practicum.yandex.user.model.UserRole;
 import ru.practicum.yandex.user.repository.ParticipationRequestRepository;
 import ru.practicum.yandex.user.repository.UserRepository;
 
@@ -36,12 +38,15 @@ import static ru.practicum.yandex.user.model.ParticipationStatus.CANCELED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.CONFIRMED;
 import static ru.practicum.yandex.user.model.ParticipationStatus.PENDING;
 import static ru.practicum.yandex.user.model.ParticipationStatus.REJECTED;
+import static ru.practicum.yandex.user.model.UserRole.USER;
 import static ru.practicum.yandex.user.repository.UserSpecification.idIn;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
+
+    private static final UserRole DEFAULT_ROLE = USER;
 
     private final UserRepository userRepository;
 
@@ -59,6 +64,8 @@ public class UserServiceImpl implements UserService {
 
     private final ParticipationMapper participationMapper;
 
+    private final PasswordEncoder passwordEncoder;
+
     /**
      * Add new user.
      *
@@ -67,6 +74,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User createUser(User userToAdd) {
+        String encodedPassword = passwordEncoder.encode(userToAdd.getPassword());
+        userToAdd.setPassword(encodedPassword);
+        userToAdd.setRole(DEFAULT_ROLE);
         final User savedUser = userRepository.save(userToAdd);
         log.info("User with id '{}' created.", savedUser.getId());
         return savedUser;
