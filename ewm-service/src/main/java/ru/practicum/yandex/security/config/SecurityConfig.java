@@ -13,6 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import ru.practicum.yandex.user.service.MyUserDetailsService;
 
+import static ru.practicum.yandex.user.model.UserRole.ADMIN;
+import static ru.practicum.yandex.user.model.UserRole.USER;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -26,9 +29,9 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(registry -> {
                     registry.mvcMatchers("/admin/**")
-                            .hasRole("ADMIN");
+                            .hasRole(ADMIN.toString());
                     registry.mvcMatchers("/users/**", "/events/{eventId}/comment/{userId}")
-                            .hasAnyRole("ADMIN", "USER");
+                            .hasAnyRole(ADMIN.toString(), USER.toString());
                     registry.mvcMatchers("/categories/**", "/compilations/**", "/events", "/events/{id}")
                             .permitAll();
                 })
